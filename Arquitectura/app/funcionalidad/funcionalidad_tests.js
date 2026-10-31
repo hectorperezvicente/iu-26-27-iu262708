@@ -1,12 +1,12 @@
 let funcionalidad_def_tests = [
     /* ==================== ID_FUNCIONALIDAD ====================*/
    
-    Array('funcionalidad','id_funcionalidad','input',1,'cumple tama\u00F1o minimo','min_size','ADD','id_funcionalidad_min_size_ko','El id de funcionalidad es demasiado corto. Introduzca al menos 1 numeros'),
+    Array('funcionalidad','id_funcionalidad','input',1,'cumple tama\u00F1o minimo','min_size','ADD','id_funcionalidad_min_size_ko','El id de funcionalidad es demasiado corto. Introduzca al menos 1 numero'),
     Array('funcionalidad','id_funcionalidad','input',2,'cumple tama\u00F1o maximo','max_size','ADD','id_funcionalidad_max_size_ko','El id de funcionalidad es demasiado largo. Introduzca hasta un maximo de 11 numeros'),
     Array('funcionalidad','id_funcionalidad','input',3,'cumple formato','format','ADD','id_funcionalidad_format_ko','El id de funcionalidad tiene un formato incorrecto. Introduzca el id correctamente con formato numerico'),
     Array('funcionalidad','id_funcionalidad','input',4,'valor correcto','valid','ADD',true,'El id de funcionalidad es correcto.'),   
     
-    Array('funcionalidad','id_funcionalidad','input',5,'cumple tama\u00F1o minimo','min_size','EDIT','id_funcionalidad_min_size_ko','El id de funcionalidad es demasiado corto. Introduzca al menos 1 numeros'),
+    Array('funcionalidad','id_funcionalidad','input',5,'cumple tama\u00F1o minimo','min_size','EDIT','id_funcionalidad_min_size_ko','El id de funcionalidad es demasiado corto. Introduzca al menos 1 numero'),
     Array('funcionalidad','id_funcionalidad','input',6,'cumple tama\u00F1o maximo','max_size','EDIT','id_funcionalidad_max_size_ko','El id de funcionalidad es demasiado largo. Introduzca hasta un maximo de 11 numeros'),
     Array('funcionalidad','id_funcionalidad','input',7,'cumple formato','format','EDIT','id_funcionalidad_format_ko','El id de funcionalidad tiene un formato incorrecto. Introduzca el id correctamente con formato numerico'),
     Array('funcionalidad','id_funcionalidad','input',8,'valor correcto','valid','EDIT',true,'El id de funcionalidad es correcto.'),

@@ -9,7 +9,7 @@ class usuario extends AbstractEntidad{
 		this.nombreentidad = 'usuario';
 
 		this.dom = new entity_dom_fields();
-		this.validations = new entity_Validations();
+		this.validations = new entity_validations();
 		this.access_functions = new ExternalAccess();
 
 		//init
