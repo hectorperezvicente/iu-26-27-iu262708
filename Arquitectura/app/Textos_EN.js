@@ -32,6 +32,7 @@ var textos_EN = {
 	'text_icono_EDIT': 'Edit',
 	'text_icono_DELETE': 'Delete',
 	'text_icono_SEARCH': 'Search',
+	'text_icono_SHOWCURRENT': 'Show detail',
 
 	// error del back sin traduccion propia
 	'text_error_back_desconocido': 'An error occurred while performing the action on the server',

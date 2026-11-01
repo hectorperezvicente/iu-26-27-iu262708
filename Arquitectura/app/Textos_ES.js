@@ -32,6 +32,7 @@ var textos_ES = {
 	'text_icono_EDIT': 'Modificar',
 	'text_icono_DELETE': 'Borrar',
 	'text_icono_SEARCH': 'Buscar',
+	'text_icono_SHOWCURRENT': 'Ver detalle',
 
 	// error del back sin traduccion propia
 	'text_error_back_desconocido': 'Se ha producido un error al realizar la acci\u00F3n en el servidor',
