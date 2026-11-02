@@ -509,6 +509,36 @@ class persona extends AbstractEntidad{
 	***********************************************************************************************/
 
 	/**
+	 * El back puede devolver una clave ajena como objeto (la fila completa de la entidad relacionada,
+	 * como pasa con id_rol en usuario). Devuelve solo el valor de la clave; si ya es un valor simple lo deja igual.
+	 * @param {any} valor valor de la columna
+	 * @param {string} clave nombre de la columna dentro del objeto
+	 * @returns {any}
+	 */
+	valor_fk(valor, clave){
+		if (valor !== null && typeof valor == 'object'){
+			return (valor[clave] !== undefined) ? valor[clave] : Object.values(valor)[0];
+		}
+		return valor;
+	}
+
+	/**
+	 * Deja dni (FK de usuario) como valor simple antes de crear la tabla: la columna muestra el dni en vez de
+	 * [object Object], los onclick de EDIT/DELETE/SHOWCURRENT no arrastran la fila de usuario y los formularios
+	 * reciben el dni que espera el select. Si el back ya lo devuelve simple no cambia nada.
+	 * @param {Object} datos filas devueltas por el back
+	 * @param {Array} mostrarespecial columnas con valor especial
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		// los saltos de linea de direccion_persona vienen como &#13;&#10; y rompen el onclick de los botones de la fila
+		this.dom.limpiar_saltos_linea(datos);
+		for (let i=0;i<datos.length;i++){
+			datos[i]['dni'] = this.valor_fk(datos[i]['dni'], 'dni');
+		}
+		super.crearTablaDatos(datos, mostrarespecial);
+	}
+
+	/**
 	 * dni es FK de usuario(dni): pide al back los usuarios y devuelve las opciones del select.
 	 * Si solo_libres es true quita los dni que ya tienen persona (en ADD no se puede repetir la PK)
 	 * @param {bool} solo_libres
@@ -519,7 +549,7 @@ class persona extends AbstractEntidad{
 		let filas = (usuarios['code'] == 'RECORDSET_DATOS') ? usuarios['resource'] : [];
 		if (solo_libres){
 			let personas = await this.access_functions.peticionBackGeneral('', 'persona', 'SEARCH');
-			let usados = (personas['code'] == 'RECORDSET_DATOS') ? personas['resource'].map(p => p.dni) : [];
+			let usados = (personas['code'] == 'RECORDSET_DATOS') ? personas['resource'].map(p => this.valor_fk(p.dni, 'dni')) : [];
 			filas = filas.filter(u => !(usados.includes(u.dni)));
 		}
 		return filas.map(u => ({valor: u.dni, texto: u.dni+' ('+u.usuario+')'}));

@@ -57,6 +57,16 @@ class rol extends AbstractEntidad{
 	}
 
 	/**
+	 * el back devuelve los saltos de linea de los textos como &#13;&#10;, que rompen el onclick de los botones de la fila
+	 * @param {Object} datos filas devueltas por el back
+	 * @param {Array} mostrarespecial columnas con valor especial
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		this.dom.limpiar_saltos_linea(datos);
+		super.crearTablaDatos(datos, mostrarespecial);
+	}
+
+	/**
 	 * muestra el error en el campo y devuelve el codigo
 	 */
 	error_campo(id, codigo){

@@ -1,49 +1,72 @@
 /**
- * clase para refactorizar los metodos de Validations que se consideren necesarios sin modificar su definición y para inclusión de nuevos métodos
+ * clase para refactorizar los metodos existentes en Validations. NO se pueden crear metodos nuevos.
+ *
+ * REFACTORIZADO: min_size y max_size
+ * El Validations original solo mide INPUT de tipo number/email/text y devuelve undefined
+ * para TEXTAREA, SELECT e INPUT password. Aqui se mide la longitud del valor en todos ellos.
  */
-class entity_Validations extends Validations{
+class entity_validations extends Validations{
     constructor(){
         super();
     }
 
-    /**
-     * indica si el elemento tiene un valor de texto comparable por longitud:
-     * cualquier input que no sea file (incluye password) y los select y textarea
-     * @param {object} elemento elemento DOM
-     * @returns {bool}
-     */
-    es_campo_de_texto(elemento){
-        return ((elemento.tagName == 'INPUT' && elemento.type != 'file') ||
-                elemento.tagName == 'SELECT' ||
-                elemento.tagName == 'TEXTAREA');
-    }
+	/**
+	 * comprueba que el valor del elemento tiene al menos minsize caracteres
+	 * @param {string} id id del elemento html
+	 * @param {number} minsize tamano minimo
+	 * @returns {bool} true si cumple, false si no
+	 */
+	min_size(id, minsize){
+		let elemento = document.getElementById(id);
+		switch (elemento.tagName){
+			case 'INPUT':
+				switch (elemento.type){
+					case 'number':
+					case 'email':
+					case 'text':
+					case 'password':
+						return !(elemento.value.length < minsize);
+					case 'file':
+						break;
+					default:
+						break;
+				}
+				break;
+			case 'TEXTAREA':
+			case 'SELECT':
+				return !(elemento.value.length < minsize);
+			default:
+				break;
+		}
+	}
 
-    /**
-     * Validations.min_size devuelve undefined para select y para input password.
-     * Aqui se comprueba la longitud del valor en esos casos y en el resto se delega en la clase padre
-     * @param {string} id id del campo
-     * @param {number} minsize longitud minima
-     * @returns {bool} true si el valor tiene al menos minsize caracteres
-     */
-    min_size(id, minsize){
-        let elemento = document.getElementById(id);
-        if (this.es_campo_de_texto(elemento)){
-            return elemento.value.length >= minsize;
-        }
-        return super.min_size(id, minsize);
-    }
-
-    /**
-     * Igual que min_size pero para la longitud maxima
-     * @param {string} id id del campo
-     * @param {number} maxsize longitud maxima
-     * @returns {bool} true si el valor tiene como mucho maxsize caracteres
-     */
-    max_size(id, maxsize){
-        let elemento = document.getElementById(id);
-        if (this.es_campo_de_texto(elemento)){
-            return elemento.value.length <= maxsize;
-        }
-        return super.max_size(id, maxsize);
-    }
+	/**
+	 * comprueba que el valor del elemento tiene como maximo maxsize caracteres
+	 * @param {string} id id del elemento html
+	 * @param {number} maxsize tamano maximo
+	 * @returns {bool} true si cumple, false si no
+	 */
+	max_size(id, maxsize){
+		let elemento = document.getElementById(id);
+		switch (elemento.tagName){
+			case 'INPUT':
+				switch (elemento.type){
+					case 'number':
+					case 'email':
+					case 'text':
+					case 'password':
+						return !(elemento.value.length > maxsize);
+					case 'file':
+						break;
+					default:
+						break;
+				}
+				break;
+			case 'TEXTAREA':
+			case 'SELECT':
+				return !(elemento.value.length > maxsize);
+			default:
+				break;
+		}
+	}
 }
