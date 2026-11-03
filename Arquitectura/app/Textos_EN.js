@@ -225,6 +225,8 @@ var textos_EN = {
 		FUNCIONALIDAD_ACCION (attributes and errors of id_accion and id_funcionalidad are in accion and funcionalidad)
 	*************************************************************************/
 	'text_titulo_page_funcionalidad_accion': 'Functionality-Action Management',
+	'text_matriz_rolaccionfuncionalidad': 'Role \\ Functionality / Action',
+	'text_matriz_funcionalidad_accion': 'Functionality \\ Action',
 	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Add Functionality-Action Form',
 	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Edit Functionality-Action Form',
 	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Delete Functionality-Action Form',
