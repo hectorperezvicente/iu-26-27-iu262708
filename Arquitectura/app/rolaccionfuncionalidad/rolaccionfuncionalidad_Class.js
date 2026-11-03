@@ -111,6 +111,151 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		super.crearTablaDatos(datos, mostrarespecial);
 	}
 
+
+	/**********************************************************************************************
+		tabla en forma de MATRIZ: filas = roles, columnas = pares funcionalidad/accion,
+		checkbox marcado = existe la tupla (rol, funcionalidad, accion) en el back.
+		Marcar un checkbox hace ADD y desmarcarlo hace DELETE de esa tupla
+	***********************************************************************************************/
+
+	/**
+	 * REFACTORIZADO: igual que SEARCH de AbstractEntidad (pide la busqueda al back con el formulario,
+	 * limpia y oculta el formulario) pero en lugar de la tabla de tuplas dibuja la matriz.
+	 * Filas y columnas salen de las listas de rol, funcionalidad, accion y funcionalidad_accion del back;
+	 * si el formulario de busqueda trae valores solo se dibujan las filas y columnas que coinciden
+	 */
+	async SEARCH(){
+
+		// valores del formulario de busqueda (antes de que se limpie)
+		let filtro = {};
+		for (let campo of ['id_funcionalidad','id_accion','id_rol']){
+			let elemento = document.getElementById(campo);
+			filtro[campo] = (elemento) ? String(elemento.value) : '';
+		}
+
+		let acceso = new ExternalAccess();
+		let [respuesta, roles, funcionalidades, acciones, pares] = await Promise.all([
+			acceso.peticionBackGeneral('form_iu', this.nombreentidad, 'SEARCH'),
+			this.dom.lista_back('rol'),
+			this.dom.lista_back('funcionalidad'),
+			this.dom.lista_back('accion'),
+			this.dom.lista_back('funcionalidad_accion')
+		]);
+
+		//ocultar y limpiar el formulario
+		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
+		this.dom.hide_element('Div_IU_form');
+
+		this.datos = (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
+
+		// etiquetas 'id - nombre'
+		let etiquetafuncionalidad = {};
+		for (let f of funcionalidades){ etiquetafuncionalidad[f['id_funcionalidad']] = this.dom.etiqueta_fila(f, 'id_funcionalidad'); }
+		let etiquetaaccion = {};
+		for (let a of acciones){ etiquetaaccion[a['id_accion']] = this.dom.etiqueta_fila(a, 'id_accion'); }
+
+		// tuplas existentes: 'rol|c_funcionalidad_accion'
+		this.matriz_activas = new Set();
+		let parescolumna = [];
+		for (let t of this.datos){
+			let idf = this.dom.valor_id(t['id_funcionalidad'], 'id_funcionalidad');
+			let ida = this.dom.valor_id(t['id_accion'], 'id_accion');
+			let idr = this.dom.valor_id(t['id_rol'], 'id_rol');
+			this.matriz_activas.add(idr+'|c_'+idf+'_'+ida);
+			parescolumna.push({f: idf, a: ida});
+		}
+		// columnas: pares validos (funcionalidad_accion) y los que aparezcan en las tuplas
+		for (let p of pares){
+			parescolumna.push({f: this.dom.valor_id(p['id_funcionalidad'], 'id_funcionalidad'), a: this.dom.valor_id(p['id_accion'], 'id_accion')});
+		}
+
+		let columnas = [];
+		let vistas = new Set();
+		for (let p of parescolumna){
+			let clave = 'c_'+p.f+'_'+p.a;
+			if (vistas.has(clave)){ continue; }
+			vistas.add(clave);
+			if (filtro['id_funcionalidad'] != '' && String(p.f) != filtro['id_funcionalidad']){ continue; }
+			if (filtro['id_accion'] != '' && String(p.a) != filtro['id_accion']){ continue; }
+			columnas.push({
+				clave: clave, f: p.f, a: p.a,
+				etiqueta: (etiquetafuncionalidad[p.f] || p.f)+'\n'+(etiquetaaccion[p.a] || p.a)
+			});
+		}
+		columnas.sort((x, y) => String(x.f).localeCompare(String(y.f), undefined, {numeric: true}) || String(x.a).localeCompare(String(y.a), undefined, {numeric: true}));
+
+		let filas = [];
+		for (let r of roles){
+			if (filtro['id_rol'] != '' && String(r['id_rol']) != filtro['id_rol']){ continue; }
+			filas.push({id: r['id_rol'], etiqueta: this.dom.etiqueta_fila(r, 'id_rol')});
+		}
+
+		this.matriz_columnas = columnas;
+		this.atributos = columnas.map(c => c.clave);
+		this.matriz_visibles = this.atributos.slice();
+
+		this.dom.show_element('IU_manage_entity');
+
+		if (filas.length == 0 || columnas.length == 0){
+			document.getElementById('seleccioncolumnas').innerHTML = '';
+			document.getElementById("IU_manage_table").style.display = 'block';
+			document.getElementById('IU_manage_table').innerHTML = 'No se han encontrado elementos que coincidan con la búsqueda';
+			document.getElementById('IU_manage_table').className = 'RECORDSET_VACIO';
+		}
+		else{
+			this.dom.crearMatriz('IU_manage_table', 'text_matriz_rolaccionfuncionalidad', filas, columnas,
+				(idfila, clave) => this.matriz_activas.has(idfila+'|'+clave),
+				(check, idfila, clave) => this.matriz_cambiar(check, idfila, clave));
+			this.dom.crearSeleccionablecolumnas(this.matriz_visibles, this.atributos);
+			this.dom.etiquetar_selector_columnas(this.matriz_columnas);
+		}
+
+		setLang();
+	}
+
+	/**
+	 * se ejecuta al marcar/desmarcar un checkbox de la matriz: marcado -> ADD, desmarcado -> DELETE.
+	 * Si el back devuelve error se deja el checkbox como estaba y se muestra el modal de error
+	 * @param {HTMLElement} check checkbox pulsado
+	 * @param {*} idrol id del rol de la fila
+	 * @param {string} clave clave de la columna (c_idfuncionalidad_idaccion)
+	 */
+	async matriz_cambiar(check, idrol, clave){
+		let columna = this.matriz_columnas.find(c => c.clave == clave);
+		let marcar = check.checked;
+		check.disabled = true;
+
+		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, (marcar) ? 'ADD' : 'DELETE',
+			{id_funcionalidad: columna.f, id_accion: columna.a, id_rol: idrol});
+
+		check.disabled = false;
+		if (respuesta['ok']){
+			if (marcar){ this.matriz_activas.add(idrol+'|'+clave); }
+			else{ this.matriz_activas.delete(idrol+'|'+clave); }
+		}
+		else{
+			check.checked = !marcar;
+			this.dom.abrirModalError(respuesta['code']);
+		}
+		setLang();
+	}
+
+	/**
+	 * REFACTORIZADO: muestra u oculta una columna de la matriz al hacer click en el select de columnas
+	 * @param {string} atributo clave de la columna
+	 */
+	modificarcolumnasamostrar(atributo){
+		if (this.matriz_visibles.includes(atributo)){
+			this.matriz_visibles = this.matriz_visibles.filter(c => c != atributo);
+		}
+		else{
+			this.matriz_visibles.push(atributo);
+		}
+		this.dom.mostrarocultarcolumnas(this.matriz_visibles, this.atributos);
+		this.dom.crearSeleccionablecolumnas(this.matriz_visibles, this.atributos);
+		this.dom.etiquetar_selector_columnas(this.matriz_columnas);
+	}
+
 	/**********************************************************************************************
 		validaciones
 	***********************************************************************************************/

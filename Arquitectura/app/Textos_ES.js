@@ -225,6 +225,8 @@ var textos_ES = {
 		FUNCIONALIDAD_ACCION (los atributos y errores de id_accion e id_funcionalidad estan en accion y funcionalidad)
 	*************************************************************************/
 	'text_titulo_page_funcionalidad_accion': 'Gesti\u00F3n de Funcionalidad-Acci\u00F3n',
+	'text_matriz_rolaccionfuncionalidad': 'Rol \\ Funcionalidad / Acci\u00F3n',
+	'text_matriz_funcionalidad_accion': 'Funcionalidad \\ Acci\u00F3n',
 	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Formulario Alta Funcionalidad-Acci\u00F3n',
 	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Formulario Modificaci\u00F3n Funcionalidad-Acci\u00F3n',
 	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Formulario Eliminaci\u00F3n Funcionalidad-Acci\u00F3n',

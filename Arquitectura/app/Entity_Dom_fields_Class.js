@@ -6,6 +6,8 @@
  *  - cargar_select_fk (pide al back las tuplas de la entidad referenciada y las añade como opciones del select)
  *  - bloquear_select (deja solo la opcion seleccionada para que no se pueda cambiar y siga en el FormData)
  *  - limpiar_saltos_linea (quita las entidades de salto de linea que devuelve el back antes de crear la tabla)
+ *  - lista_back, valor_id, etiqueta_fila, crearMatriz y etiquetar_selector_columnas (tablas en forma de matriz
+ *    de funcionalidad_accion y rolaccionfuncionalidad)
  *
  * REFACTORIZADOS:
  *  - crearElementoHtml: el original no rellena textarea ni crea select (los crea vacios) y si la prueba
@@ -219,6 +221,120 @@ class entity_dom_fields extends dom_fields{
 					datos[i][clave] = datos[i][clave].replace(/(&#13;)?&#10;|&#13;/g, ' ');
 				}
 			}
+		}
+	}
+
+	/**********************************************************************************************
+		METODOS NUEVOS PARA LAS TABLAS EN FORMA DE MATRIZ (funcionalidad_accion y rolaccionfuncionalidad)
+	***********************************************************************************************/
+
+	/**
+	 * metodo nuevo: pide al back todas las tuplas de una entidad
+	 * @param {string} controlador entidad del back (rol, accion, funcionalidad...)
+	 * @returns {Array} filas devueltas (vacio si el back no devuelve datos)
+	 */
+	async lista_back(controlador){
+		let respuesta = await new ExternalAccess().peticionBackGeneral('', controlador, 'SEARCH');
+		return (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
+	}
+
+	/**
+	 * metodo nuevo: el back devuelve las claves ajenas como objeto (la tupla de la entidad relacionada).
+	 * Devuelve solo el valor del id
+	 * @param {*} valor valor devuelto por el back (escalar u objeto)
+	 * @param {string} columna nombre de la columna id
+	 * @returns {*} valor del id
+	 */
+	valor_id(valor, columna){
+		if (valor !== null && typeof valor == 'object'){
+			return (valor[columna] !== undefined) ? valor[columna] : Object.values(valor)[0];
+		}
+		return valor;
+	}
+
+	/**
+	 * metodo nuevo: texto 'id - nombre' de una tupla (nombre = primera columna no objeto distinta del id)
+	 * @param {Object} fila tupla devuelta por el back
+	 * @param {string} columnaid nombre de la columna id
+	 * @returns {string} etiqueta
+	 */
+	etiqueta_fila(fila, columnaid){
+		let columnanombre = Object.keys(fila).find(c => (c != columnaid) && (typeof fila[c] != 'object'));
+		return fila[columnaid] + ((columnanombre) ? ' - '+fila[columnanombre] : '');
+	}
+
+	/**
+	 * metodo nuevo: dibuja una matriz de checkboxes (filas x columnas) en el contenedor.
+	 * Las celdas y cabeceras de columna llevan las clases tabla-td-CLAVE / tabla-th-CLAVE para poder
+	 * reutilizar crearSeleccionablecolumnas y mostrarocultarcolumnas
+	 *
+	 * @param {string} idcomponente id del contenedor donde se dibuja la tabla
+	 * @param {string} claseesquina clase de traduccion del texto de la esquina superior izquierda
+	 * @param {Array} filas [{id, etiqueta}]
+	 * @param {Array} columnas [{clave, etiqueta}] (la etiqueta puede llevar saltos de linea)
+	 * @param {Function} estaactiva (idfila, clavecolumna) => true si el checkbox va marcado
+	 * @param {Function} alcambiar (checkbox, idfila, clavecolumna) se invoca al hacer click en un checkbox
+	 */
+	crearMatriz(idcomponente, claseesquina, filas, columnas, estaactiva, alcambiar){
+
+		switch_display_mode(idcomponente,'block','on');
+		let contenedor = document.getElementById(idcomponente);
+		contenedor.innerHTML = '';
+		contenedor.className = '';
+
+		let tabla = document.createElement('table');
+		tabla.id = 'tablamatriz';
+		let cabecera = document.createElement('thead');
+		let cuerpo = document.createElement('tbody');
+		tabla.append(cabecera);
+		tabla.append(cuerpo);
+
+		let trcabecera = document.createElement('tr');
+		let esquina = document.createElement('th');
+		esquina.className = claseesquina;
+		trcabecera.append(esquina);
+		for (let columna of columnas){
+			let th = document.createElement('th');
+			th.className = 'tabla-th-'+columna.clave;
+			th.style.whiteSpace = 'pre-line';
+			th.textContent = columna.etiqueta;
+			trcabecera.append(th);
+		}
+		cabecera.append(trcabecera);
+
+		for (let fila of filas){
+			let tr = document.createElement('tr');
+			let thfila = document.createElement('th');
+			thfila.className = 'tabla-fila-matriz';
+			thfila.textContent = fila.etiqueta;
+			tr.append(thfila);
+			for (let columna of columnas){
+				let td = document.createElement('td');
+				td.className = 'tabla-td-'+columna.clave;
+				let check = document.createElement('input');
+				check.type = 'checkbox';
+				check.checked = estaactiva(fila.id, columna.clave);
+				check.title = fila.etiqueta+' / '+columna.etiqueta.replace(/\n/g, ' ');
+				check.addEventListener('change', () => alcambiar(check, fila.id, columna.clave));
+				td.append(check);
+				tr.append(td);
+			}
+			cuerpo.append(tr);
+		}
+
+		contenedor.append(tabla);
+		setLang();
+	}
+
+	/**
+	 * metodo nuevo: crearSeleccionablecolumnas pone como texto de cada opcion la clave de la columna;
+	 * este metodo la sustituye por la etiqueta legible (mismo orden que las columnas)
+	 * @param {Array} columnas [{clave, etiqueta}]
+	 */
+	etiquetar_selector_columnas(columnas){
+		let opciones = document.getElementById('seleccioncolumnas').options;
+		for (let i=0;i<opciones.length && i<columnas.length;i++){
+			opciones[i].textContent = columnas[i].etiqueta.replace(/\n/g, ' ');
 		}
 	}
 }
