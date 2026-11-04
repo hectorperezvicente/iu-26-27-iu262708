@@ -5,7 +5,10 @@
  *  - usa entity_dom_fields (Data_Test crea un dom_fields, que no sabe crear textarea ni select)
  *  - vacia el contenedor del formulario antes de las pruebas (si estaba el formulario de la entidad
  *    cargado, getElementById devolveria sus campos en vez de los de la prueba) y lo restaura despues
- *  - muestra el resultado en una ventana nueva, con un resumen de correctas/incorrectas
+ *  - muestra el resultado en una ventana nueva, con un resumen de correctas/incorrectas.
+ *    El titulo y el resumen salen del fichero de idioma activo (la ventana nueva no tiene setLang,
+ *    asi que el texto se toma de window.traduccion al generarla)
+ *  - si el navegador bloquea la ventana nueva se avisa con el modal de error, con el texto traducido
  */
 class entity_Test_Data extends Data_Test{
     constructor(entidad){
@@ -39,9 +42,12 @@ class entity_Test_Data extends Data_Test{
 		var correctas = salidapruebas.filter(p => p.pruebastatus == 'CORRECTO').length;
 		var sintraduccion = salidapruebas.filter(p => p.traduccionError == 'sintraduccion').length;
 
+		// textos del idioma activo
+		var t = (clave) => (window.traduccion && window.traduccion[clave]) ? window.traduccion[clave] : clave;
+
 		var ventana = window.open('', 'test_'+this.entidad.nombreentidad);
 		if (ventana === null){
-			alert('El navegador ha bloqueado la ventana de resultados. Permite ventanas emergentes para esta pagina.');
+			this.dom.abrirModalError('text_test_ventana_bloqueada');
 			return false;
 		}
 		ventana.document.open();
@@ -54,8 +60,8 @@ class entity_Test_Data extends Data_Test{
 				th{background:#ddd;}
 				.resumen{margin-bottom:12px;font-size:15px;}
 			</style></head><body>
-			<h2>Resultado pruebas entidad `+this.entidad.nombreentidad+`</h2>
-			<div class="resumen">Total: `+total+` &nbsp; Correctas: `+correctas+` &nbsp; Incorrectas: `+(total-correctas)+` &nbsp; Sin traduccion: `+sintraduccion+`</div>
+			<h2>`+t('text_test_resultado')+` `+this.entidad.nombreentidad+`</h2>
+			<div class="resumen">`+t('text_test_total')+`: `+total+` &nbsp; `+t('text_test_correctas')+`: `+correctas+` &nbsp; `+t('text_test_incorrectas')+`: `+(total-correctas)+` &nbsp; `+t('text_test_sintraduccion')+`: `+sintraduccion+`</div>
 			`+tabla+`
 			</body></html>`);
 		ventana.document.close();

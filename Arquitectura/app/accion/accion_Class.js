@@ -21,6 +21,8 @@ class accion extends AbstractEntidad{
 			document.getElementById('IU_manage_entity').style.display = 'block';
 			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
+			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
@@ -72,25 +74,6 @@ class accion extends AbstractEntidad{
 		return true;
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
-
-	ADD_id_accion_validation(){
-		if (!(this.validations.min_size('id_accion',1))){
-			return this.error_campo('id_accion','id_accion_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_accion',11))){
-			return this.error_campo('id_accion','id_accion_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_accion','^[0-9]+$'))){
-			return this.error_campo('id_accion','id_accion_format_ko');
-		}
-		return this.exito_campo('id_accion');
-	}
-
 	ADD_nombre_accion_validation(){
 		if (!(this.validations.min_size('nombre_accion',5))){
 			return this.error_campo('nombre_accion','nombre_accion_min_size_ko');
@@ -120,12 +103,9 @@ class accion extends AbstractEntidad{
 	}
 
 	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD)
+		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
+		primaria y foto guardada) no se validan: el usuario no introduce esos datos
 	***********************************************************************************************/
-
-	EDIT_id_accion_validation(){
-		return this.ADD_id_accion_validation();
-	}
 
 	EDIT_nombre_accion_validation(){
 		return this.ADD_nombre_accion_validation();
@@ -205,7 +185,7 @@ class accion extends AbstractEntidad{
 	}
 
 	EDIT_submit_accion(){
-		return this.submit_accion('EDIT', ['id_accion', 'nombre_accion', 'descrip_accion']);
+		return this.submit_accion('EDIT', ['nombre_accion', 'descrip_accion']);
 	}
 
 	SEARCH_submit_accion(){
@@ -256,6 +236,7 @@ class accion extends AbstractEntidad{
 
 		// la clave primaria no se modifica
 		this.dom.assign_property_value('id_accion','readonly','true');
+		this.dom.quitar_validacion('id_accion');
 
 		this.dom.colocarboton('EDIT');
 
@@ -302,6 +283,14 @@ class accion extends AbstractEntidad{
 		// SHOWCURRENT no tiene boton de submit
 
 		setLang();
+	}
+
+	/**
+	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
+	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**

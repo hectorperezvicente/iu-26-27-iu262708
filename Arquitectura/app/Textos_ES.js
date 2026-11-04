@@ -9,13 +9,21 @@ var textos_ES = {
 	// resultado de una validacion correcta (lo busca el test)
 	'true': 'Correcto',
 
+	// ventana de resultados del TEST
+	'text_test_resultado': 'Resultado pruebas entidad',
+	'text_test_total': 'Total',
+	'text_test_correctas': 'Correctas',
+	'text_test_incorrectas': 'Incorrectas',
+	'text_test_sintraduccion': 'Sin traducci\u00F3n',
+	'text_test_ventana_bloqueada': 'El navegador ha bloqueado la ventana con el resultado de las pruebas. Permita las ventanas emergentes para esta p\u00E1gina y vuelva a pulsar TEST',
+
 	// textos menu
 	'text_menu_persona': 'Gestionar persona',
 	'text_menu_usuario': 'Gestionar usuario',
 	'text_menu_rol': 'Gestionar rol',
 	'text_menu_accion': 'Gestionar acci\u00F3n',
 	'text_menu_funcionalidad': 'Gestionar funcionalidad',
-	'text_menu_funcionalidad_accion': 'Gestionar funcionalidad-acci\u00F3n',
+	'text_menu_funcionalidad_accion': 'Gestionar permisos funcionalidad-acci\u00F3n',
 	'text_menu_rolaccionfuncionalidad': 'Gestionar permisos rol-acci\u00F3n-funcionalidad',
 
 	// columnas de acciones de la tabla
@@ -27,12 +35,19 @@ var textos_ES = {
 	'text_opcion_seleccionar': '-- Seleccione --',
 	'text_opcion_todos': '-- Todos --',
 
+	// matriz de las tablas de permisos (funcionalidad_accion y rolaccionfuncionalidad)
+	'text_matriz_esquina': 'Funcionalidad \\ Acci\u00F3n',
+	'label_matriz_rol': 'Rol:',
+	'text_matriz_ayuda': 'Los cambios se guardan autom\u00E1ticamente al marcar o desmarcar una casilla; no hay que pulsar otro bot\u00F3n.',
+	'text_matriz_ayuda_rol': 'Los cambios se guardan autom\u00E1ticamente al marcar o desmarcar una casilla; no hay que pulsar otro bot\u00F3n. Las casillas deshabilitadas son combinaciones que no se pueden asignar.',
+	'text_error_matriz_no_guardado': 'El servidor ha respondido correctamente, pero el cambio no se ha guardado. Int\u00E9ntelo de nuevo',
+	'text_error_matriz_comprobacion': 'No se ha podido comprobar en el servidor si el cambio se ha guardado. Vuelva a buscar para ver el estado actual',
+
 	// iconos del boton de submit (alt y title)
 	'text_icono_ADD': 'A\u00F1adir',
 	'text_icono_EDIT': 'Modificar',
 	'text_icono_DELETE': 'Borrar',
 	'text_icono_SEARCH': 'Buscar',
-	'text_icono_SHOWCURRENT': 'Ver detalle',
 
 	// error del back sin traduccion propia
 	'text_error_back_desconocido': 'Se ha producido un error al realizar la acci\u00F3n en el servidor',
@@ -177,7 +192,7 @@ var textos_ES = {
 	'id_rol': 'Id Rol',
 	'rol_name': 'Nombre Rol',
 	'rol_description': 'Descripci\u00F3n Rol',
-	'label_id_rol': 'Rol',
+	'label_id_rol': 'Id Rol',
 	'label_rol_name': 'Nombre Rol',
 	'label_rol_description': 'Descripci\u00F3n Rol',
 	// id_rol: comunes a rol y usuario
@@ -212,7 +227,17 @@ var textos_ES = {
 	'contrasena_format_ko': 'La contrase\u00F1a tiene un formato incorrecto. Introduzca solo letras, sin \u00F1 ni acentos',
 
 	/*************************************************************************
-		ROLACCIONFUNCIONALIDAD (los atributos y errores de id_rol, id_accion e id_funcionalidad estan en rol, accion y funcionalidad)
+		FUNCIONALIDAD_ACCION (los codigos de error de los id estan en accion, funcionalidad y rol)
+	*************************************************************************/
+	'text_titulo_page_funcionalidad_accion': 'Gesti\u00F3n de Permisos Funcionalidad-Acci\u00F3n',
+	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Formulario Alta Permiso Funcionalidad-Acci\u00F3n',
+	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Formulario Modificaci\u00F3n Permiso Funcionalidad-Acci\u00F3n',
+	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Formulario Eliminaci\u00F3n Permiso Funcionalidad-Acci\u00F3n',
+	'text_contenido_titulo_form_funcionalidad_accion_SHOWCURRENT': 'Formulario Detalle Permiso Funcionalidad-Acci\u00F3n',
+	'text_contenido_titulo_form_funcionalidad_accion_SEARCH': 'Formulario B\u00FAsqueda Permiso Funcionalidad-Acci\u00F3n',
+
+	/*************************************************************************
+		ROLACCIONFUNCIONALIDAD (los codigos de error de los id estan en accion, funcionalidad y rol)
 	*************************************************************************/
 	'text_titulo_page_rolaccionfuncionalidad': 'Gesti\u00F3n de Permisos Rol-Acci\u00F3n-Funcionalidad',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_ADD': 'Formulario Alta Permiso Rol-Acci\u00F3n-Funcionalidad',
@@ -220,18 +245,6 @@ var textos_ES = {
 	'text_contenido_titulo_form_rolaccionfuncionalidad_DELETE': 'Formulario Eliminaci\u00F3n Permiso Rol-Acci\u00F3n-Funcionalidad',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_SHOWCURRENT': 'Formulario Detalle Permiso Rol-Acci\u00F3n-Funcionalidad',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_SEARCH': 'Formulario B\u00FAsqueda Permiso Rol-Acci\u00F3n-Funcionalidad',
-
-	/*************************************************************************
-		FUNCIONALIDAD_ACCION (los atributos y errores de id_accion e id_funcionalidad estan en accion y funcionalidad)
-	*************************************************************************/
-	'text_titulo_page_funcionalidad_accion': 'Gesti\u00F3n de Funcionalidad-Acci\u00F3n',
-	'text_matriz_rolaccionfuncionalidad': 'Rol \\ Funcionalidad / Acci\u00F3n',
-	'text_matriz_funcionalidad_accion': 'Funcionalidad \\ Acci\u00F3n',
-	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Formulario Alta Funcionalidad-Acci\u00F3n',
-	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Formulario Modificaci\u00F3n Funcionalidad-Acci\u00F3n',
-	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Formulario Eliminaci\u00F3n Funcionalidad-Acci\u00F3n',
-	'text_contenido_titulo_form_funcionalidad_accion_SHOWCURRENT': 'Formulario Detalle Funcionalidad-Acci\u00F3n',
-	'text_contenido_titulo_form_funcionalidad_accion_SEARCH': 'Formulario B\u00FAsqueda Funcionalidad-Acci\u00F3n',
 
 	/*************************************************************************
 		ERRORES DE ACCION (devueltos por el back)

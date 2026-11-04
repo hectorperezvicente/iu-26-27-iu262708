@@ -1,62 +1,60 @@
 class rolaccionfuncionalidad extends AbstractEntidad{
 
+	/**
+	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 */
 	constructor(esTest=null){
 
 		super();
 
+		this.nombreentidad = 'rolaccionfuncionalidad';
+		this.rol_actual = '';
+		this.filtro = {id_funcionalidad: '', id_accion: '', id_rol: ''};
 		this.columnasamostrar = ['id_funcionalidad','id_accion','id_rol'];
 		this.mostrarespecial = [];
-		this.nombreentidad = 'rolaccionfuncionalidad';
 
 		this.dom = new entity_dom_fields();
 		this.validations = new entity_validations();
 		this.access_functions = new ExternalAccess();
 
-		//init
 		if (esTest == 'test'){}
 		else{
-			//visualizar seccion tabla y botones
+			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
+			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
+			// se gestiona con la matriz: sin icono de ADD (se asigna marcando casillas) ni selector de columnas
+			this.dom.configurar_cabecera_gestion(false, false);
 
-			//crear el formulario vacio
+			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			//invocar busqueda en back con el formulario vacio
+			// busqueda en back con el formulario vacio y dibujo de la matriz
 			this.SEARCH();
 		}
-
 	}
 
 	/**
-	 * devuelve el html del formulario de la entidad (sin action ni onsubmit ni onchange:
-	 * los pone cada createForm_<ACCION> con colocarvalidaciones).
-	 * Los tres campos son claves ajenas (y a la vez la PK compuesta), por eso son select; cada uno
-	 * lleva la opcion vacia ('') para que el SEARCH inicial y el ADD sin seleccionar envien un valor vacio
+	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
 		var form_content = `
 			<form id='form_iu' action="" method="POST" enctype="multipart/form-data" onsubmit="" class='formulario'>
 
-				<label class="label_id_funcionalidad">Id Funcionalidad</label>
-				<select id='id_funcionalidad' name='id_funcionalidad'>
-					<option value=''></option>
-				</select>
+				<label id="label_id_funcionalidad" class="label_id_funcionalidad">Funcionalidad</label>
+				<!-- id_funcionalidad es FK de funcionalidad_accion(id_funcionalidad, id_accion): select cargado desde el back en createForm -->
+				<select id='id_funcionalidad' name='id_funcionalidad'></select>
 				<span id="span_error_id_funcionalidad"><a id="error_id_funcionalidad"></a></span>
 				<br>
-
-				<label class="label_id_accion">Id Acción</label>
-				<select id='id_accion' name='id_accion'>
-					<option value=''></option>
-				</select>
+				<label id="label_id_accion" class="label_id_accion">Acci\u00F3n</label>
+				<!-- id_accion es FK de funcionalidad_accion(id_funcionalidad, id_accion): select cargado desde el back en createForm -->
+				<select id='id_accion' name='id_accion'></select>
 				<span id="span_error_id_accion"><a id="error_id_accion"></a></span>
 				<br>
-
-				<label class="label_id_rol">Id Rol</label>
-				<select id='id_rol' name='id_rol'>
-					<option value=''></option>
-				</select>
+				<label id="label_id_rol" class="label_id_rol">Rol</label>
+				<!-- id_rol es FK de rol(id_rol): select cargado desde el back en createForm -->
+				<select id='id_rol' name='id_rol'></select>
 				<span id="span_error_id_rol"><a id="error_id_rol"></a></span>
 				<br>
 
@@ -65,206 +63,8 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		return form_content;
 	}
 
-	/**********************************************************************************************
-		carga de los select (claves ajenas) y datos de la tabla
-	***********************************************************************************************/
-
-	/**
-	 * carga en los tres select las opciones de funcionalidad, accion y rol que hay en el back.
-	 * Debe terminar ANTES de rellenarvaloresform, que asigna el value a los select.
-	 */
-	async cargar_selects(){
-		await Promise.all([
-			this.dom.cargar_select_fk('id_funcionalidad','funcionalidad','id_funcionalidad'),
-			this.dom.cargar_select_fk('id_accion','accion','id_accion'),
-			this.dom.cargar_select_fk('id_rol','rol','id_rol')
-		]);
-	}
-
-	/**
-	 * bloquea los tres select de la PK compuesta (se deja solo la opcion seleccionada, el valor sigue en el FormData)
-	 */
-	bloquear_selects(){
-		this.dom.bloquear_select('id_funcionalidad');
-		this.dom.bloquear_select('id_accion');
-		this.dom.bloquear_select('id_rol');
-	}
-
-	/**
-	 * El back devuelve cada clave ajena como objeto (la tupla de la entidad relacionada). Se deja solo
-	 * el id antes de crear la tabla: las columnas muestran el id en vez de [object Object], los onclick de
-	 * EDIT/DELETE/SHOWCURRENT no arrastran descripciones (pueden traer &#13;&#10;, que rompe el JS del
-	 * atributo) y los formularios reciben un valor que encaja en el select.
-	 * @param {Object} datos filas devueltas por el back
-	 * @param {Array} mostrarespecial columnas con valor especial
-	 */
-	crearTablaDatos(datos, mostrarespecial){
-		for (let i=0;i<datos.length;i++){
-			for (let c=0;c<this.columnasamostrar.length;c++){
-				let columna = this.columnasamostrar[c];
-				let valor = datos[i][columna];
-				if (valor !== null && typeof valor == 'object'){
-					datos[i][columna] = (valor[columna] !== undefined) ? valor[columna] : Object.values(valor)[0];
-				}
-			}
-		}
-		super.crearTablaDatos(datos, mostrarespecial);
-	}
-
-
-	/**********************************************************************************************
-		tabla en forma de MATRIZ: filas = roles, columnas = pares funcionalidad/accion,
-		checkbox marcado = existe la tupla (rol, funcionalidad, accion) en el back.
-		Marcar un checkbox hace ADD y desmarcarlo hace DELETE de esa tupla
-	***********************************************************************************************/
-
-	/**
-	 * REFACTORIZADO: igual que SEARCH de AbstractEntidad (pide la busqueda al back con el formulario,
-	 * limpia y oculta el formulario) pero en lugar de la tabla de tuplas dibuja la matriz.
-	 * Filas y columnas salen de las listas de rol, funcionalidad, accion y funcionalidad_accion del back;
-	 * si el formulario de busqueda trae valores solo se dibujan las filas y columnas que coinciden
-	 */
-	async SEARCH(){
-
-		// valores del formulario de busqueda (antes de que se limpie)
-		let filtro = {};
-		for (let campo of ['id_funcionalidad','id_accion','id_rol']){
-			let elemento = document.getElementById(campo);
-			filtro[campo] = (elemento) ? String(elemento.value) : '';
-		}
-
-		let acceso = new ExternalAccess();
-		let [respuesta, roles, funcionalidades, acciones, pares] = await Promise.all([
-			acceso.peticionBackGeneral('form_iu', this.nombreentidad, 'SEARCH'),
-			this.dom.lista_back('rol'),
-			this.dom.lista_back('funcionalidad'),
-			this.dom.lista_back('accion'),
-			this.dom.lista_back('funcionalidad_accion')
-		]);
-
-		//ocultar y limpiar el formulario
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		this.dom.hide_element('Div_IU_form');
-
-		this.datos = (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
-
-		// etiquetas 'id - nombre'
-		let etiquetafuncionalidad = {};
-		for (let f of funcionalidades){ etiquetafuncionalidad[f['id_funcionalidad']] = this.dom.etiqueta_fila(f, 'id_funcionalidad'); }
-		let etiquetaaccion = {};
-		for (let a of acciones){ etiquetaaccion[a['id_accion']] = this.dom.etiqueta_fila(a, 'id_accion'); }
-
-		// tuplas existentes: 'rol|c_funcionalidad_accion'
-		this.matriz_activas = new Set();
-		let parescolumna = [];
-		for (let t of this.datos){
-			let idf = this.dom.valor_id(t['id_funcionalidad'], 'id_funcionalidad');
-			let ida = this.dom.valor_id(t['id_accion'], 'id_accion');
-			let idr = this.dom.valor_id(t['id_rol'], 'id_rol');
-			this.matriz_activas.add(idr+'|c_'+idf+'_'+ida);
-			parescolumna.push({f: idf, a: ida});
-		}
-		// columnas: pares validos (funcionalidad_accion) y los que aparezcan en las tuplas
-		for (let p of pares){
-			parescolumna.push({f: this.dom.valor_id(p['id_funcionalidad'], 'id_funcionalidad'), a: this.dom.valor_id(p['id_accion'], 'id_accion')});
-		}
-
-		let columnas = [];
-		let vistas = new Set();
-		for (let p of parescolumna){
-			let clave = 'c_'+p.f+'_'+p.a;
-			if (vistas.has(clave)){ continue; }
-			vistas.add(clave);
-			if (filtro['id_funcionalidad'] != '' && String(p.f) != filtro['id_funcionalidad']){ continue; }
-			if (filtro['id_accion'] != '' && String(p.a) != filtro['id_accion']){ continue; }
-			columnas.push({
-				clave: clave, f: p.f, a: p.a,
-				etiqueta: (etiquetafuncionalidad[p.f] || p.f)+'\n'+(etiquetaaccion[p.a] || p.a)
-			});
-		}
-		columnas.sort((x, y) => String(x.f).localeCompare(String(y.f), undefined, {numeric: true}) || String(x.a).localeCompare(String(y.a), undefined, {numeric: true}));
-
-		let filas = [];
-		for (let r of roles){
-			if (filtro['id_rol'] != '' && String(r['id_rol']) != filtro['id_rol']){ continue; }
-			filas.push({id: r['id_rol'], etiqueta: this.dom.etiqueta_fila(r, 'id_rol')});
-		}
-
-		this.matriz_columnas = columnas;
-		this.atributos = columnas.map(c => c.clave);
-		this.matriz_visibles = this.atributos.slice();
-
-		this.dom.show_element('IU_manage_entity');
-
-		if (filas.length == 0 || columnas.length == 0){
-			document.getElementById('seleccioncolumnas').innerHTML = '';
-			document.getElementById("IU_manage_table").style.display = 'block';
-			document.getElementById('IU_manage_table').innerHTML = 'No se han encontrado elementos que coincidan con la búsqueda';
-			document.getElementById('IU_manage_table').className = 'RECORDSET_VACIO';
-		}
-		else{
-			this.dom.crearMatriz('IU_manage_table', 'text_matriz_rolaccionfuncionalidad', filas, columnas,
-				(idfila, clave) => this.matriz_activas.has(idfila+'|'+clave),
-				(check, idfila, clave) => this.matriz_cambiar(check, idfila, clave));
-			this.dom.crearSeleccionablecolumnas(this.matriz_visibles, this.atributos);
-			this.dom.etiquetar_selector_columnas(this.matriz_columnas);
-		}
-
-		setLang();
-	}
-
-	/**
-	 * se ejecuta al marcar/desmarcar un checkbox de la matriz: marcado -> ADD, desmarcado -> DELETE.
-	 * Si el back devuelve error se deja el checkbox como estaba y se muestra el modal de error
-	 * @param {HTMLElement} check checkbox pulsado
-	 * @param {*} idrol id del rol de la fila
-	 * @param {string} clave clave de la columna (c_idfuncionalidad_idaccion)
-	 */
-	async matriz_cambiar(check, idrol, clave){
-		let columna = this.matriz_columnas.find(c => c.clave == clave);
-		let marcar = check.checked;
-		check.disabled = true;
-
-		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, (marcar) ? 'ADD' : 'DELETE',
-			{id_funcionalidad: columna.f, id_accion: columna.a, id_rol: idrol});
-
-		check.disabled = false;
-		if (respuesta['ok']){
-			if (marcar){ this.matriz_activas.add(idrol+'|'+clave); }
-			else{ this.matriz_activas.delete(idrol+'|'+clave); }
-		}
-		else{
-			check.checked = !marcar;
-			this.dom.abrirModalError(respuesta['code']);
-		}
-		setLang();
-	}
-
-	/**
-	 * REFACTORIZADO: muestra u oculta una columna de la matriz al hacer click en el select de columnas
-	 * @param {string} atributo clave de la columna
-	 */
-	modificarcolumnasamostrar(atributo){
-		if (this.matriz_visibles.includes(atributo)){
-			this.matriz_visibles = this.matriz_visibles.filter(c => c != atributo);
-		}
-		else{
-			this.matriz_visibles.push(atributo);
-		}
-		this.dom.mostrarocultarcolumnas(this.matriz_visibles, this.atributos);
-		this.dom.crearSeleccionablecolumnas(this.matriz_visibles, this.atributos);
-		this.dom.etiquetar_selector_columnas(this.matriz_columnas);
-	}
-
-	/**********************************************************************************************
-		validaciones
-	***********************************************************************************************/
-
 	/**
 	 * muestra el error en el campo y devuelve el codigo
-	 * @param {string} id id del campo
-	 * @param {string} codigo codigo de error (campo_validacion_ko)
-	 * @returns {string} codigo
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -273,42 +73,105 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 
 	/**
 	 * muestra el exito en el campo y devuelve true
-	 * @param {string} id id del campo
-	 * @returns {bool} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
-	/**
-	 * validacion comun a los tres campos (id numerico de hasta 11 digitos)
-	 * @param {string} campo id del campo (id_funcionalidad / id_accion / id_rol); el codigo de error es campo_validacion_ko
-	 * @param {bool} obligatorio true en ADD y EDIT (no puede estar vacio y solo digitos), false en SEARCH (valores parciales)
-	 * @returns {string} codigo de error o {bool} true si es correcto
-	 */
-	validar_id_clave_ajena(campo, obligatorio){
-		if (obligatorio && !(this.validations.min_size(campo,1))){
-			return this.error_campo(campo, campo+'_min_size_ko');
+	/**********************************************************************************************
+		fields validations for ADD
+		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
+	***********************************************************************************************/
+
+	ADD_id_funcionalidad_validation(){
+		if (!(this.validations.min_size('id_funcionalidad',1))){
+			return this.error_campo('id_funcionalidad','id_funcionalidad_min_size_ko');
 		}
-		if (!(this.validations.max_size(campo,11))){
-			return this.error_campo(campo, campo+'_max_size_ko');
+		if (!(this.validations.max_size('id_funcionalidad',11))){
+			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
 		}
 		// solo digitos
-		if (!(this.validations.format(campo, obligatorio ? '^[0-9]+$' : '^[0-9]*$'))){
-			return this.error_campo(campo, campo+'_format_ko');
+		if (!(this.validations.format('id_funcionalidad','^[0-9]+$'))){
+			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
 		}
-		return this.exito_campo(campo);
+		return this.exito_campo('id_funcionalidad');
 	}
 
+	ADD_id_accion_validation(){
+		if (!(this.validations.min_size('id_accion',1))){
+			return this.error_campo('id_accion','id_accion_min_size_ko');
+		}
+		if (!(this.validations.max_size('id_accion',11))){
+			return this.error_campo('id_accion','id_accion_max_size_ko');
+		}
+		// solo digitos
+		if (!(this.validations.format('id_accion','^[0-9]+$'))){
+			return this.error_campo('id_accion','id_accion_format_ko');
+		}
+		return this.exito_campo('id_accion');
+	}
+
+	ADD_id_rol_validation(){
+		if (!(this.validations.min_size('id_rol',1))){
+			return this.error_campo('id_rol','id_rol_min_size_ko');
+		}
+		if (!(this.validations.max_size('id_rol',11))){
+			return this.error_campo('id_rol','id_rol_max_size_ko');
+		}
+		// solo digitos
+		if (!(this.validations.format('id_rol','^[0-9]+$'))){
+			return this.error_campo('id_rol','id_rol_format_ko');
+		}
+		return this.exito_campo('id_rol');
+	}
+
+	/**********************************************************************************************
+		fields validations for SEARCH (campos opcionales, valores parciales)
+	***********************************************************************************************/
+
+	SEARCH_id_funcionalidad_validation(){
+		if (!(this.validations.max_size('id_funcionalidad',11))){
+			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
+		}
+		if (!(this.validations.format('id_funcionalidad','^[0-9]*$'))){
+			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
+		}
+		return this.exito_campo('id_funcionalidad');
+	}
+
+	SEARCH_id_accion_validation(){
+		if (!(this.validations.max_size('id_accion',11))){
+			return this.error_campo('id_accion','id_accion_max_size_ko');
+		}
+		if (!(this.validations.format('id_accion','^[0-9]*$'))){
+			return this.error_campo('id_accion','id_accion_format_ko');
+		}
+		return this.exito_campo('id_accion');
+	}
+
+	SEARCH_id_rol_validation(){
+		if (!(this.validations.max_size('id_rol',11))){
+			return this.error_campo('id_rol','id_rol_max_size_ko');
+		}
+		if (!(this.validations.format('id_rol','^[0-9]*$'))){
+			return this.error_campo('id_rol','id_rol_format_ko');
+		}
+		return this.exito_campo('id_rol');
+	}
+
+	/**********************************************************************************************
+		submits
+		@return {bool} true si todos los campos son correctos
+		@return {object} {id_campo: resultado} si alguno falla
+	***********************************************************************************************/
+
 	/**
-	 * ejecuta la validacion de la accion para todos los campos del formulario
+	 * ejecuta la validacion de la accion para los campos indicados
 	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @returns {bool} true si todos son correctos
-	 * @returns {object} {id_campo: resultado} si alguno falla
+	 * @param {Array} campos ids de los campos a validar
 	 */
-	submit_accion(accion){
-		var campos = ['id_funcionalidad','id_accion','id_rol'];
+	submit_accion(accion, campos){
 		var set_result = {};
 		var result = true;
 
@@ -327,218 +190,328 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		}
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
-
-	ADD_id_funcionalidad_validation(){
-		return this.validar_id_clave_ajena('id_funcionalidad', true);
-	}
-
-	ADD_id_accion_validation(){
-		return this.validar_id_clave_ajena('id_accion', true);
-	}
-
-	ADD_id_rol_validation(){
-		return this.validar_id_clave_ajena('id_rol', true);
-	}
-
-	/**
-		@return	{bool} true if all fields validations are ok or
-		@return {object} object with the ids of elements and error code if a field validation is not ok
-	*/
 	ADD_submit_rolaccionfuncionalidad(){
-		return this.submit_accion('ADD');
-	}
-
-	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD; los tres campos son la PK y van bloqueados
-		pero se validan igual porque los tests de EDIT esperan los mismos errores)
-	***********************************************************************************************/
-
-	EDIT_id_funcionalidad_validation(){
-		return this.ADD_id_funcionalidad_validation();
-	}
-
-	EDIT_id_accion_validation(){
-		return this.ADD_id_accion_validation();
-	}
-
-	EDIT_id_rol_validation(){
-		return this.ADD_id_rol_validation();
-	}
-
-	EDIT_submit_rolaccionfuncionalidad(){
-		return this.submit_accion('EDIT');
-	}
-
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, se permiten valores parciales)
-	***********************************************************************************************/
-
-	SEARCH_id_funcionalidad_validation(){
-		return this.validar_id_clave_ajena('id_funcionalidad', false);
-	}
-
-	SEARCH_id_accion_validation(){
-		return this.validar_id_clave_ajena('id_accion', false);
-	}
-
-	SEARCH_id_rol_validation(){
-		return this.validar_id_clave_ajena('id_rol', false);
+		return this.submit_accion('ADD', ['id_funcionalidad', 'id_accion', 'id_rol']);
 	}
 
 	SEARCH_submit_rolaccionfuncionalidad(){
-		return this.submit_accion('SEARCH');
+		return this.submit_accion('SEARCH', ['id_funcionalidad', 'id_accion', 'id_rol']);
 	}
 
 	/**********************************************************************************************
-		construccion de formularios por accion
-		(async porque hay que cargar los select del back antes de rellenar valores)
+		formularios por accion
 	***********************************************************************************************/
 
 	/**
-	 * Construye el formulario para EDIT partiendo del formulario basico definido manualmente
-	 * @param {Object} fila objeto con los datos de la ocurrencia a modificar
+	 * id_rol es FK de rol(id_rol): pide al back las filas de rol y devuelve las opciones del select
+	 * @returns {Array} [{valor, texto}]
 	 */
-	async createForm_EDIT(fila){
-
-		// poner titulo al formulario
-		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_rolaccionfuncionalidad_EDIT');
-		// limpiar el formulario y cargar los select
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		await this.cargar_selects();
-		// poner visible el formulario
-		this.dom.show_element('Div_IU_form','block');
-
-		// rellenar onsubmit y action
-		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.EDIT_submit_'+this.nombreentidad+'())');
-		this.dom.assign_property_value('form_iu', 'action', 'javascript:entidad.EDIT();');
-
-		// rellenar valores
-		this.dom.rellenarvaloresform(fila);
-
-		// poner las validaciones
-		this.dom.colocarvalidaciones('form_iu','EDIT');
-
-		// poner inactivos los campos correspondientes (los tres forman la PK)
-		this.dom.colocartodosreadonly('form_iu');
-		this.bloquear_selects();
-
-		// colocar boton de submit
-		this.dom.colocarboton('EDIT');
-
-		setLang();
-
-	}
-
-	async createForm_DELETE(fila){
-		// poner titulo al formulario
-		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_rolaccionfuncionalidad_DELETE');
-		// limpiar el formulario y cargar los select
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		await this.cargar_selects();
-		// poner visible el formulario
-		this.dom.show_element('Div_IU_form','block');
-
-		// rellenar action
-		this.dom.assign_property_value('form_iu', 'action', 'javascript:entidad.DELETE();');
-
-		// rellenar valores
-		this.dom.rellenarvaloresform(fila);
-
-		// poner inactivos los campos correspondientes
-		this.dom.colocartodosreadonly('form_iu');
-		this.bloquear_selects();
-
-		// colocar boton de submit
-		this.dom.colocarboton('DELETE');
-
-		setLang();
-
-	}
-
-	async createForm_SHOWCURRENT(fila){
-		// poner titulo al formulario
-		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_rolaccionfuncionalidad_SHOWCURRENT');
-		// limpiar el formulario y cargar los select
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		await this.cargar_selects();
-		// poner visible el formulario
-		this.dom.show_element('Div_IU_form','block');
-
-		// rellenar valores
-		this.dom.rellenarvaloresform(fila);
-
-		// poner inactivos los campos correspondientes
-		this.dom.colocartodosreadonly('form_iu');
-		this.bloquear_selects();
-
-		setLang();
-
-	}
-
-	async createForm_ADD(){
-		// poner titulo al formulario
-		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_rolaccionfuncionalidad_ADD');
-		// limpiar el formulario y cargar los select
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		await this.cargar_selects();
-		// poner visible el formulario
-		this.dom.show_element('Div_IU_form','block');
-
-		// poner onsubmit
-		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.ADD_submit_'+this.nombreentidad+'())');
-
-		// poner action
-		this.dom.assign_property_value('form_iu', 'action', 'javascript:entidad.ADD();');
-
-		// poner las validaciones
-		this.dom.colocarvalidaciones('form_iu','ADD');
-
-		// colocar boton de submit
-		this.dom.colocarboton('ADD');
-
-		setLang();
-	}
-
-	async createForm_SEARCH(){
-		// poner titulo al formulario
-		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_rolaccionfuncionalidad_SEARCH');
-		// limpiar el formulario y cargar los select
-		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
-		await this.cargar_selects();
-		// poner visible el formulario
-		this.dom.show_element('Div_IU_form','block');
-
-		// poner onsubmit
-		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.SEARCH_submit_'+this.nombreentidad+'())');
-
-		// poner action
-		this.dom.assign_property_value('form_iu', 'action', 'javascript:entidad.SEARCH();');
-
-		// poner las validaciones
-		this.dom.colocarvalidaciones('form_iu','SEARCH');
-
-		// colocar boton de submit
-		this.dom.colocarboton('SEARCH');
-
-		setLang();
-
+	async opciones_id_rol(){
+		let respuesta = await this.access_functions.peticionBackGeneral('', 'rol', 'SEARCH');
+		let filas = (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
+		return filas.map(f => ({valor: f.id_rol, texto: f.id_rol+' ('+f.rol_name+')'}));
 	}
 
 	/**
-	 * transforma el valor de la columna a mostrar en la tabla de datos de la entidad del back
-	 * (rolaccionfuncionalidad no tiene columnas especiales: se devuelve el valor tal cual).
-	 * El nombre cambiarmostrarespecial es el que invoca AbstractEntidad.crearTablaDatos
-	 *
-	 * @param {string} columna nombre de la columna a modificar
-	 * @param {any} valor valor inicial de la columna
-	 * @returns {any} nuevo valor transformado de la columna
+	 * pone el titulo, pinta el formulario vacio y lo hace visible
+	 * @param {string} accion
+	 */
+	preparar_formulario(accion){
+		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
+		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
+		this.dom.show_element('Div_IU_form','block');
+	}
+
+	async createForm_SEARCH(){
+		this.preparar_formulario('SEARCH');
+		this.dom.crearOpcionesSelect('id_funcionalidad', await this.opciones_id_funcionalidad(), 'text_opcion_todos');
+		this.dom.crearOpcionesSelect('id_accion', await this.opciones_id_accion(), 'text_opcion_todos');
+		this.dom.crearOpcionesSelect('id_rol', await this.opciones_id_rol(), 'text_opcion_todos');
+		this.filtrar_acciones_por_funcionalidad();
+
+		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.SEARCH_submit_'+this.nombreentidad+'())');
+		this.dom.assign_property_value('form_iu','action','javascript:entidad.SEARCH();');
+
+		this.dom.colocarvalidaciones('form_iu','SEARCH');
+		this.dom.colocarboton('SEARCH');
+
+		setLang();
+	}
+
+	/**
+	 * id_funcionalidad + id_accion son FK de funcionalidad_accion(id_funcionalidad, id_accion): solo valen
+	 * parejas que existan alli. Se piden al back las parejas una vez y se guardan en this.pares.
+	 * El back puede devolver cada id como objeto (la tupla relacionada): se usa su id y su nombre.
+	 * @returns {Array} [{id_funcionalidad, nombre_funcionalidad, id_accion, nombre_accion}]
+	 */
+	async cargar_pares(){
+		let respuesta = await this.access_functions.peticionBackGeneral('', 'funcionalidad_accion', 'SEARCH');
+		let filas = (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
+		this.pares = filas.map(f => {
+			let fun = f.id_funcionalidad, acc = f.id_accion;
+			return {
+				id_funcionalidad: (fun !== null && typeof fun == 'object') ? fun.id_funcionalidad : fun,
+				nombre_funcionalidad: (fun !== null && typeof fun == 'object') ? fun.nombre_funcionalidad : '',
+				id_accion: (acc !== null && typeof acc == 'object') ? acc.id_accion : acc,
+				nombre_accion: (acc !== null && typeof acc == 'object') ? acc.nombre_accion : ''
+			};
+		});
+		return this.pares;
+	}
+
+	/**
+	 * opciones de id_funcionalidad: las funcionalidades que tienen alguna accion en funcionalidad_accion
+	 * @returns {Array} [{valor, texto}]
+	 */
+	async opciones_id_funcionalidad(){
+		let pares = await this.cargar_pares();
+		let opciones = [];
+		for (let p of pares){
+			if (!(opciones.some(o => o.valor == p.id_funcionalidad))){
+				opciones.push({valor: p.id_funcionalidad, texto: p.id_funcionalidad + (p.nombre_funcionalidad ? ' ('+p.nombre_funcionalidad+')' : '')});
+			}
+		}
+		return opciones;
+	}
+
+	/**
+	 * opciones de id_accion: las acciones asociadas a la funcionalidad indicada en funcionalidad_accion
+	 * (todas las de las parejas si no se indica funcionalidad)
+	 * @param {string} id_funcionalidad funcionalidad elegida ('' = todas)
+	 * @returns {Array} [{valor, texto}]
+	 */
+	async opciones_id_accion(id_funcionalidad=''){
+		let pares = (this.pares) ? this.pares : await this.cargar_pares();
+		let opciones = [];
+		for (let p of pares){
+			if ((id_funcionalidad === '' || p.id_funcionalidad == id_funcionalidad) && !(opciones.some(o => o.valor == p.id_accion))){
+				opciones.push({valor: p.id_accion, texto: p.id_accion + (p.nombre_accion ? ' ('+p.nombre_accion+')' : '')});
+			}
+		}
+		return opciones;
+	}
+
+	/**
+	 * al cambiar la funcionalidad se dejan en id_accion solo las acciones de su pareja en funcionalidad_accion
+	 * (la manipulacion del DOM la hacen los metodos de entity_dom_fields)
+	 */
+	filtrar_acciones_por_funcionalidad(){
+		this.dom.al_cambiar('id_funcionalidad', async (id_funcionalidad) => {
+			this.dom.crearOpcionesSelect('id_accion', await this.opciones_id_accion(id_funcionalidad), this.dom.clase_opcion_vacia('id_accion'));
+			setLang();
+		});
+	}
+
+	/**********************************************************************************************
+		GESTION CON MATRIZ: rolaccionfuncionalidad solo se asigna (ADD) y desasigna (DELETE), asi que
+		en lugar de la tabla de tuplas con iconos se muestra la misma matriz que en funcionalidad_accion
+		(funcionalidades x acciones) con un desplegable arriba a la izquierda para elegir el rol.
+		Marcar una casilla asigna el permiso al rol (ADD) y desmarcarla se lo quita (DELETE).
+		Solo se pueden marcar las parejas que existen en funcionalidad_accion (es la FK de esta tabla):
+		el resto de casillas aparecen deshabilitadas. La busqueda (SEARCH) y el TEST se mantienen.
+		El DOM lo manipulan los metodos de entity_dom_fields
+	***********************************************************************************************/
+
+	/**
+	 * REFACTORIZADO (AbstractEntidad no se puede modificar): busca en el back con los datos del
+	 * formulario y, en lugar de crear la tabla de tuplas, dibuja la matriz con el resultado.
+	 * Si se ha buscado por un rol, el desplegable queda en ese rol; si se ha buscado por una
+	 * funcionalidad o una accion, la matriz muestra solo esa fila o columna.
+	 * Si el back devuelve un error se muestra en el modal de error
+	 */
+	async SEARCH(){
+		this.filtro = this.dom.valores_formulario('form_iu', ['id_funcionalidad', 'id_accion', 'id_rol']);
+		if (this.filtro.id_rol != ''){
+			this.rol_actual = this.filtro.id_rol;
+		}
+		let respuesta = await this.access_functions.peticionBackGeneral('form_iu', this.nombreentidad, 'SEARCH');
+
+		// ocultar y limpiar el formulario
+		document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
+		this.dom.hide_element('Div_IU_form');
+
+		await this.procesar_busqueda(respuesta);
+	}
+
+	/**
+	 * al elegir otro rol en el desplegable se buscan en el back los permisos de ese rol (manteniendo
+	 * el filtro de funcionalidad y accion de la ultima busqueda) y se vuelve a dibujar la matriz
+	 * @param {*} id_rol rol elegido
+	 */
+	async cambiar_rol(id_rol){
+		this.rol_actual = id_rol;
+		let datos = {id_rol: id_rol};
+		if (this.filtro.id_funcionalidad != ''){
+			datos.id_funcionalidad = this.filtro.id_funcionalidad;
+		}
+		if (this.filtro.id_accion != ''){
+			datos.id_accion = this.filtro.id_accion;
+		}
+		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, 'SEARCH', datos);
+		await this.procesar_busqueda(respuesta);
+	}
+
+	/**
+	 * guarda las tuplas de la respuesta de busqueda y dibuja la matriz, o muestra el error del back
+	 * @param {object} respuesta respuesta del back a un SEARCH
+	 */
+	async procesar_busqueda(respuesta){
+		if ((respuesta['code'] != 'RECORDSET_DATOS') && (respuesta['code'] != 'RECORDSET_VACIO')){
+			this.dom.abrirModalError(respuesta['code']);
+			return;
+		}
+		this.datos = (respuesta['code'] == 'RECORDSET_DATOS') ? respuesta['resource'] : [];
+		await this.mostrar_matriz();
+	}
+
+	/**
+	 * devuelve el id de un atributo de una tupla del back (las FK pueden llegar como objeto)
+	 * @param {*} valor valor del atributo
+	 * @param {string} columna nombre del atributo
+	 */
+	id_valor(valor, columna){
+		return (valor !== null && typeof valor == 'object') ? valor[columna] : valor;
+	}
+
+	/**
+	 * pide al back todas las filas de una entidad para el desplegable, las filas o las columnas de la matriz
+	 * @param {string} entidad nombre de la entidad en el back
+	 * @param {string} campoid atributo con el id
+	 * @param {string} camponombre atributo con el nombre que se muestra
+	 * @returns {Array|null} [{valor, texto}] o null si el back devuelve un error (ya mostrado en el modal)
+	 */
+	async listar(entidad, campoid, camponombre){
+		let respuesta = await this.access_functions.peticionBackGeneral('', entidad, 'SEARCH');
+		if (respuesta['code'] == 'RECORDSET_VACIO'){
+			return [];
+		}
+		if (respuesta['code'] != 'RECORDSET_DATOS'){
+			this.dom.abrirModalError(respuesta['code']);
+			return null;
+		}
+		return respuesta['resource'].map(f => ({valor: f[campoid], texto: f[camponombre]}));
+	}
+
+	/**
+	 * clave de casilla de una tupla: 'id_funcionalidad|id_accion'
+	 */
+	clave_tupla(tupla){
+		return this.id_valor(tupla.id_funcionalidad, 'id_funcionalidad')+'|'+this.id_valor(tupla.id_accion, 'id_accion');
+	}
+
+	/**
+	 * dibuja el desplegable de rol y la matriz: filas = funcionalidades, columnas = acciones (filtradas
+	 * por la busqueda), casillas marcadas = permisos del rol elegido que ha devuelto la busqueda,
+	 * casillas habilitadas = parejas que existen en funcionalidad_accion y las que ya estan marcadas
+	 */
+	async mostrar_matriz(){
+		let [roles, funcionalidades, acciones] = await Promise.all([
+			this.listar('rol', 'id_rol', 'rol_name'),
+			this.listar('funcionalidad', 'id_funcionalidad', 'nombre_funcionalidad'),
+			this.listar('accion', 'id_accion', 'nombre_accion')]);
+		if ((roles === null) || (funcionalidades === null) || (acciones === null)){
+			return;
+		}
+		let pares = await this.cargar_pares();
+
+		// rol del desplegable: el buscado o el ultimo elegido; si no hay (o ya no existe), el primero
+		if (!(roles.some(r => r.valor == this.rol_actual))){
+			this.rol_actual = (roles.length > 0) ? roles[0].valor : '';
+		}
+
+		let filas = funcionalidades.filter(f => (this.filtro.id_funcionalidad == '') || (f.valor == this.filtro.id_funcionalidad));
+		let columnas = acciones.filter(a => (this.filtro.id_accion == '') || (a.valor == this.filtro.id_accion));
+		let asignables = new Set(pares.map(p => p.id_funcionalidad+'|'+p.id_accion));
+		this.activas = new Set(this.datos
+			.filter(t => this.id_valor(t.id_rol, 'id_rol') == this.rol_actual)
+			.map(t => this.clave_tupla(t)));
+
+		this.dom.preparar_contenedor_matriz('IU_manage_table');
+		this.dom.crearSelectorMatriz('IU_manage_table', 'selector_rol_matriz', 'label_matriz_rol', roles, this.rol_actual,
+			(id_rol) => this.cambiar_rol(id_rol));
+		this.dom.crearMatriz('IU_manage_table', 'text_matriz_esquina', 'text_matriz_ayuda_rol', filas, columnas,
+			(valorfila, valorcolumna) => this.activas.has(valorfila+'|'+valorcolumna),
+			// una casilla marcada siempre se puede desmarcar (aunque su pareja no venga en la busqueda de
+			// funcionalidad_accion); una vacia solo se puede marcar si la pareja existe en funcionalidad_accion
+			(valorfila, valorcolumna) => (this.rol_actual !== '') && (this.activas.has(valorfila+'|'+valorcolumna) || asignables.has(valorfila+'|'+valorcolumna)),
+			(casilla, valorfila, valorcolumna) => this.matriz_cambiar(casilla, valorfila, valorcolumna));
+		setLang();
+	}
+
+	/**
+	 * al marcar una casilla se asigna el permiso al rol elegido (ADD) y al desmarcarla se le quita (DELETE).
+	 * Errores del back: si responde con error, la casilla vuelve a su estado y se muestra el codigo en
+	 * el modal. Si responde ok se comprueba con una busqueda que el permiso ha quedado (o ya no esta)
+	 * en el back; si no coincide, la casilla vuelve a su estado y se avisa de que no se ha guardado
+	 * @param {HTMLElement} casilla casilla pulsada
+	 * @param {*} id_funcionalidad valor de la fila
+	 * @param {*} id_accion valor de la columna
+	 */
+	async matriz_cambiar(casilla, id_funcionalidad, id_accion){
+		let marcar = casilla.checked;
+		let datos = {id_funcionalidad: id_funcionalidad, id_accion: id_accion, id_rol: this.rol_actual};
+		casilla.disabled = true;
+
+		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, (marcar) ? 'ADD' : 'DELETE', datos);
+		let codigoerror = (respuesta['ok']) ? null : respuesta['code'];
+		if (codigoerror === null){
+			let existe = await this.existe_en_back(datos);
+			if (existe === null){
+				codigoerror = 'text_error_matriz_comprobacion';
+			}
+			else if (existe != marcar){
+				codigoerror = 'text_error_matriz_no_guardado';
+			}
+		}
+
+		casilla.disabled = false;
+		if (codigoerror === null){
+			if (marcar){
+				this.activas.add(id_funcionalidad+'|'+id_accion);
+			}
+			else{
+				this.activas.delete(id_funcionalidad+'|'+id_accion);
+			}
+		}
+		else{
+			casilla.checked = !marcar;
+			this.dom.abrirModalError(codigoerror);
+		}
+	}
+
+	/**
+	 * busca en el back la tupla y comprueba si existe (comparando los ids exactos, porque la busqueda
+	 * del back puede devolver tambien ids que contienen el buscado)
+	 * @param {object} datos {id_funcionalidad, id_accion, id_rol}
+	 * @returns {bool|null} true si existe, false si no, null si el back responde con error
+	 */
+	async existe_en_back(datos){
+		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, 'SEARCH', datos);
+		if (respuesta['code'] == 'RECORDSET_VACIO'){
+			return false;
+		}
+		if (respuesta['code'] != 'RECORDSET_DATOS'){
+			return null;
+		}
+		let clave = this.clave_tupla(datos);
+		return respuesta['resource'].some(t => (this.clave_tupla(t) == clave) && (this.id_valor(t.id_rol, 'id_rol') == datos.id_rol));
+	}
+
+	/**
+	 * metodo pedido en el enunciado. Esta entidad no transforma ninguna columna (mostrarespecial vacio)
+	 * @param {string} atributo nombre del atributo
+	 * @param {any} valorentrada valor original
+	 * @returns {any} el mismo valor
+	 */
+	mostrarcambioatributo(atributo, valorentrada){
+		return valorentrada;
+	}
+
+	/**
+	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
 	 */
 	cambiarmostrarespecial(columna, valor){
-		return valor;
+		return this.mostrarcambioatributo(columna, valor);
 	}
 
 }
