@@ -21,6 +21,8 @@ class rol extends AbstractEntidad{
 			document.getElementById('IU_manage_entity').style.display = 'block';
 			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
+			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
@@ -57,16 +59,6 @@ class rol extends AbstractEntidad{
 	}
 
 	/**
-	 * el back devuelve los saltos de linea de los textos como &#13;&#10;, que rompen el onclick de los botones de la fila
-	 * @param {Object} datos filas devueltas por el back
-	 * @param {Array} mostrarespecial columnas con valor especial
-	 */
-	crearTablaDatos(datos, mostrarespecial){
-		this.dom.limpiar_saltos_linea(datos);
-		super.crearTablaDatos(datos, mostrarespecial);
-	}
-
-	/**
 	 * muestra el error en el campo y devuelve el codigo
 	 */
 	error_campo(id, codigo){
@@ -80,25 +72,6 @@ class rol extends AbstractEntidad{
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
-	}
-
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
-
-	ADD_id_rol_validation(){
-		if (!(this.validations.min_size('id_rol',1))){
-			return this.error_campo('id_rol','id_rol_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_rol',11))){
-			return this.error_campo('id_rol','id_rol_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_rol','^[0-9]+$'))){
-			return this.error_campo('id_rol','id_rol_format_ko');
-		}
-		return this.exito_campo('id_rol');
 	}
 
 	ADD_rol_name_validation(){
@@ -130,12 +103,9 @@ class rol extends AbstractEntidad{
 	}
 
 	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD)
+		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
+		primaria y foto guardada) no se validan: el usuario no introduce esos datos
 	***********************************************************************************************/
-
-	EDIT_id_rol_validation(){
-		return this.ADD_id_rol_validation();
-	}
 
 	EDIT_rol_name_validation(){
 		return this.ADD_rol_name_validation();
@@ -215,7 +185,7 @@ class rol extends AbstractEntidad{
 	}
 
 	EDIT_submit_rol(){
-		return this.submit_accion('EDIT', ['id_rol', 'rol_name', 'rol_description']);
+		return this.submit_accion('EDIT', ['rol_name', 'rol_description']);
 	}
 
 	SEARCH_submit_rol(){
@@ -266,6 +236,7 @@ class rol extends AbstractEntidad{
 
 		// la clave primaria no se modifica
 		this.dom.assign_property_value('id_rol','readonly','true');
+		this.dom.quitar_validacion('id_rol');
 
 		this.dom.colocarboton('EDIT');
 
@@ -312,6 +283,14 @@ class rol extends AbstractEntidad{
 		// SHOWCURRENT no tiene boton de submit
 
 		setLang();
+	}
+
+	/**
+	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
+	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**

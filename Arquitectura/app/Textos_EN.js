@@ -9,13 +9,21 @@ var textos_EN = {
 	// result of a correct validation (used by the test)
 	'true': 'Correct',
 
+	// ventana de resultados del TEST
+	'text_test_resultado': 'Test results for entity',
+	'text_test_total': 'Total',
+	'text_test_correctas': 'Correct',
+	'text_test_incorrectas': 'Incorrect',
+	'text_test_sintraduccion': 'Without translation',
+	'text_test_ventana_bloqueada': 'The browser has blocked the window with the test results. Allow pop-up windows for this page and press TEST again',
+
 	// menu
 	'text_menu_persona': 'Person management',
 	'text_menu_usuario': 'User management',
 	'text_menu_rol': 'Role management',
 	'text_menu_accion': 'Action management',
 	'text_menu_funcionalidad': 'Functionality management',
-	'text_menu_funcionalidad_accion': 'Functionality-action management',
+	'text_menu_funcionalidad_accion': 'Functionality-action permissions',
 	'text_menu_rolaccionfuncionalidad': 'Role-action-functionality permissions',
 
 	// table action columns
@@ -27,12 +35,19 @@ var textos_EN = {
 	'text_opcion_seleccionar': '-- Select --',
 	'text_opcion_todos': '-- All --',
 
+	// matriz de las tablas de permisos (funcionalidad_accion y rolaccionfuncionalidad)
+	'text_matriz_esquina': 'Functionality \\ Action',
+	'label_matriz_rol': 'Role:',
+	'text_matriz_ayuda': 'Changes are saved automatically when a box is checked or unchecked; there is no other button to press.',
+	'text_matriz_ayuda_rol': 'Changes are saved automatically when a box is checked or unchecked; there is no other button to press. Disabled boxes are combinations that cannot be assigned.',
+	'text_error_matriz_no_guardado': 'The server answered correctly, but the change has not been saved. Try again',
+	'text_error_matriz_comprobacion': 'It was not possible to check on the server whether the change was saved. Search again to see the current state',
+
 	// iconos del boton de submit (alt y title)
 	'text_icono_ADD': 'Add',
 	'text_icono_EDIT': 'Edit',
 	'text_icono_DELETE': 'Delete',
 	'text_icono_SEARCH': 'Search',
-	'text_icono_SHOWCURRENT': 'Show detail',
 
 	// error del back sin traduccion propia
 	'text_error_back_desconocido': 'An error occurred while performing the action on the server',
@@ -177,7 +192,7 @@ var textos_EN = {
 	'id_rol': 'Role Id',
 	'rol_name': 'Role name',
 	'rol_description': 'Role description',
-	'label_id_rol': 'Role',
+	'label_id_rol': 'Role Id',
 	'label_rol_name': 'Role name',
 	'label_rol_description': 'Role description',
 	// id_rol: shared by rol and usuario
@@ -212,26 +227,24 @@ var textos_EN = {
 	'contrasena_format_ko': 'Wrong password format. Only letters without \u00F1 or accents are allowed',
 
 	/*************************************************************************
-		ROLACCIONFUNCIONALIDAD (attributes and errors of id_rol, id_accion and id_funcionalidad are in rol, accion and funcionalidad)
+		FUNCIONALIDAD_ACCION (id error codes are in accion, funcionalidad and rol)
 	*************************************************************************/
-	'text_titulo_page_rolaccionfuncionalidad': 'Role-Action-Functionality Permissions Management',
+	'text_titulo_page_funcionalidad_accion': 'Functionality-Action Permission Management',
+	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Add Functionality-Action Permission Form',
+	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Edit Functionality-Action Permission Form',
+	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Delete Functionality-Action Permission Form',
+	'text_contenido_titulo_form_funcionalidad_accion_SHOWCURRENT': 'Functionality-Action Permission Detail Form',
+	'text_contenido_titulo_form_funcionalidad_accion_SEARCH': 'Search Functionality-Action Permission Form',
+
+	/*************************************************************************
+		ROLACCIONFUNCIONALIDAD (id error codes are in accion, funcionalidad and rol)
+	*************************************************************************/
+	'text_titulo_page_rolaccionfuncionalidad': 'Role-Action-Functionality Permission Management',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_ADD': 'Add Role-Action-Functionality Permission Form',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_EDIT': 'Edit Role-Action-Functionality Permission Form',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_DELETE': 'Delete Role-Action-Functionality Permission Form',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_SHOWCURRENT': 'Role-Action-Functionality Permission Detail Form',
 	'text_contenido_titulo_form_rolaccionfuncionalidad_SEARCH': 'Search Role-Action-Functionality Permission Form',
-
-	/*************************************************************************
-		FUNCIONALIDAD_ACCION (attributes and errors of id_accion and id_funcionalidad are in accion and funcionalidad)
-	*************************************************************************/
-	'text_titulo_page_funcionalidad_accion': 'Functionality-Action Management',
-	'text_matriz_rolaccionfuncionalidad': 'Role \\ Functionality / Action',
-	'text_matriz_funcionalidad_accion': 'Functionality \\ Action',
-	'text_contenido_titulo_form_funcionalidad_accion_ADD': 'Add Functionality-Action Form',
-	'text_contenido_titulo_form_funcionalidad_accion_EDIT': 'Edit Functionality-Action Form',
-	'text_contenido_titulo_form_funcionalidad_accion_DELETE': 'Delete Functionality-Action Form',
-	'text_contenido_titulo_form_funcionalidad_accion_SHOWCURRENT': 'Functionality-Action Detail Form',
-	'text_contenido_titulo_form_funcionalidad_accion_SEARCH': 'Search Functionality-Action Form',
 
 	/*************************************************************************
 		ACTION ERRORS (returned by the back end)

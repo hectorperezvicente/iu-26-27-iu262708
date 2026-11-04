@@ -23,6 +23,8 @@ class persona extends AbstractEntidad{
 			document.getElementById('IU_manage_entity').style.display = 'block';
 			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
+			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
@@ -164,14 +166,6 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * reescribe una fecha d/m/aaaa valida como dd/mm/aaaa (1/1/2000 -> 01/01/2000)
-	 */
-	normalizar_fecha(id){
-		let partes = document.getElementById(id).value.split('/');
-		document.getElementById(id).value = partes[0].padStart(2,'0') + '/' + partes[1].padStart(2,'0') + '/' + partes[2];
-	}
-
-	/**
 	 * muestra el error en el campo y devuelve el codigo
 	 */
 	error_campo(id, codigo){
@@ -254,7 +248,7 @@ class persona extends AbstractEntidad{
 			return this.error_campo('fechaNacimiento_persona','fechaNacimiento_persona_future_date_ko');
 		}
 		// se almacena siempre como dd/mm/aaaa
-		this.normalizar_fecha('fechaNacimiento_persona');
+		this.dom.normalizar_fecha('fechaNacimiento_persona');
 		return this.exito_campo('fechaNacimiento_persona');
 	}
 
@@ -302,20 +296,6 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('email_persona');
 	}
 
-	// nombre de la foto guardada (en ADD el campo esta oculto: lo rellena el back)
-	ADD_foto_persona_validation(){
-		if (!(this.validations.min_size('foto_persona',5))){
-			return this.error_campo('foto_persona','foto_persona_min_size_ko');
-		}
-		if (!(this.validations.max_size('foto_persona',15))){
-			return this.error_campo('foto_persona','foto_persona_max_size_ko');
-		}
-		if (!(this.validations.format('foto_persona','^[A-Za-z.]+\\.(jpg|jpeg|JPG|JPEG)$'))){
-			return this.error_campo('foto_persona','foto_persona_format_ko');
-		}
-		return this.exito_campo('foto_persona');
-	}
-
 	ADD_nuevo_foto_persona_validation(){
 		if (!(this.validations.exist_file('nuevo_foto_persona'))){
 			return this.error_campo('nuevo_foto_persona','nuevo_foto_persona_exist_file_ko');
@@ -347,19 +327,25 @@ class persona extends AbstractEntidad{
 	}
 
 	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD)
+		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
+		primaria y foto guardada) no se validan: el usuario no introduce esos datos
 	***********************************************************************************************/
 
-	EDIT_dni_validation(){ return this.ADD_dni_validation(); }
 	EDIT_nombre_persona_validation(){ return this.ADD_nombre_persona_validation(); }
 	EDIT_apellidos_persona_validation(){ return this.ADD_apellidos_persona_validation(); }
 	EDIT_fechaNacimiento_persona_validation(){ return this.ADD_fechaNacimiento_persona_validation(); }
 	EDIT_direccion_persona_validation(){ return this.ADD_direccion_persona_validation(); }
 	EDIT_telefono_persona_validation(){ return this.ADD_telefono_persona_validation(); }
 	EDIT_email_persona_validation(){ return this.ADD_email_persona_validation(); }
-	EDIT_foto_persona_validation(){ return this.ADD_foto_persona_validation(); }
-	// en EDIT el fichero tiene que existir (correccion ET1)
-	EDIT_nuevo_foto_persona_validation(){ return this.ADD_nuevo_foto_persona_validation(); }
+
+	// en EDIT la foto nueva es opcional: si no se elige fichero se mantiene la actual,
+	// si se elige se comprueba igual que en ADD
+	EDIT_nuevo_foto_persona_validation(){
+		if (!(this.validations.exist_file('nuevo_foto_persona'))){
+			return this.exito_campo('nuevo_foto_persona');
+		}
+		return this.nuevo_foto_persona_comprobar_fichero();
+	}
 
 	/**********************************************************************************************
 		fields validations for SEARCH (campos opcionales, valores parciales)
@@ -448,14 +434,6 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('foto_persona');
 	}
 
-	// en SEARCH el campo file esta oculto: si no hay fichero es correcto
-	SEARCH_nuevo_foto_persona_validation(){
-		if (!(this.validations.exist_file('nuevo_foto_persona'))){
-			return this.exito_campo('nuevo_foto_persona');
-		}
-		return this.nuevo_foto_persona_comprobar_fichero();
-	}
-
 	/**********************************************************************************************
 		submits
 		@return {bool} true si todos los campos son correctos
@@ -492,10 +470,9 @@ class persona extends AbstractEntidad{
 			'direccion_persona','telefono_persona','email_persona','nuevo_foto_persona']);
 	}
 
-	// foto_persona no se valida: es de solo lectura y viene del back
+	// dni y foto_persona no se validan: son de solo lectura (el usuario no introduce esos datos)
 	EDIT_submit_persona(){
-		return this.submit_accion('EDIT', ['dni','nombre_persona','apellidos_persona','fechaNacimiento_persona',
-			'direccion_persona','telefono_persona','email_persona','nuevo_foto_persona']);
+		return this.submit_accion('EDIT', ['nombre_persona', 'apellidos_persona', 'fechaNacimiento_persona', 'direccion_persona', 'telefono_persona', 'email_persona', 'nuevo_foto_persona']);
 	}
 
 	// nuevo_foto_persona no se valida: en SEARCH esta oculto
@@ -509,36 +486,6 @@ class persona extends AbstractEntidad{
 	***********************************************************************************************/
 
 	/**
-	 * El back puede devolver una clave ajena como objeto (la fila completa de la entidad relacionada,
-	 * como pasa con id_rol en usuario). Devuelve solo el valor de la clave; si ya es un valor simple lo deja igual.
-	 * @param {any} valor valor de la columna
-	 * @param {string} clave nombre de la columna dentro del objeto
-	 * @returns {any}
-	 */
-	valor_fk(valor, clave){
-		if (valor !== null && typeof valor == 'object'){
-			return (valor[clave] !== undefined) ? valor[clave] : Object.values(valor)[0];
-		}
-		return valor;
-	}
-
-	/**
-	 * Deja dni (FK de usuario) como valor simple antes de crear la tabla: la columna muestra el dni en vez de
-	 * [object Object], los onclick de EDIT/DELETE/SHOWCURRENT no arrastran la fila de usuario y los formularios
-	 * reciben el dni que espera el select. Si el back ya lo devuelve simple no cambia nada.
-	 * @param {Object} datos filas devueltas por el back
-	 * @param {Array} mostrarespecial columnas con valor especial
-	 */
-	crearTablaDatos(datos, mostrarespecial){
-		// los saltos de linea de direccion_persona vienen como &#13;&#10; y rompen el onclick de los botones de la fila
-		this.dom.limpiar_saltos_linea(datos);
-		for (let i=0;i<datos.length;i++){
-			datos[i]['dni'] = this.valor_fk(datos[i]['dni'], 'dni');
-		}
-		super.crearTablaDatos(datos, mostrarespecial);
-	}
-
-	/**
 	 * dni es FK de usuario(dni): pide al back los usuarios y devuelve las opciones del select.
 	 * Si solo_libres es true quita los dni que ya tienen persona (en ADD no se puede repetir la PK)
 	 * @param {bool} solo_libres
@@ -549,7 +496,7 @@ class persona extends AbstractEntidad{
 		let filas = (usuarios['code'] == 'RECORDSET_DATOS') ? usuarios['resource'] : [];
 		if (solo_libres){
 			let personas = await this.access_functions.peticionBackGeneral('', 'persona', 'SEARCH');
-			let usados = (personas['code'] == 'RECORDSET_DATOS') ? personas['resource'].map(p => this.valor_fk(p.dni, 'dni')) : [];
+			let usados = (personas['code'] == 'RECORDSET_DATOS') ? personas['resource'].map(p => (p.dni !== null && typeof p.dni == 'object') ? p.dni.dni : p.dni) : [];
 			filas = filas.filter(u => !(usados.includes(u.dni)));
 		}
 		return filas.map(u => ({valor: u.dni, texto: u.dni+' ('+u.usuario+')'}));
@@ -621,7 +568,9 @@ class persona extends AbstractEntidad{
 
 		// clave primaria y nombre de foto guardada no se modifican
 		this.dom.assign_property_value('dni','readonly','true');
+		this.dom.quitar_validacion('dni');
 		this.dom.assign_property_value('foto_persona','readonly','true');
+		this.dom.quitar_validacion('foto_persona');
 
 		this.dom.colocarboton('EDIT');
 
@@ -704,6 +653,14 @@ class persona extends AbstractEntidad{
 		}
 		var elementos = stringfecha.split('-');
 		return elementos[2]+'/'+elementos[1]+'/'+elementos[0];
+	}
+
+	/**
+	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
+	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**

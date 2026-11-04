@@ -21,6 +21,8 @@ class funcionalidad extends AbstractEntidad{
 			document.getElementById('IU_manage_entity').style.display = 'block';
 			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
+			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
@@ -57,16 +59,6 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * el back devuelve los saltos de linea de los textos como &#13;&#10;, que rompen el onclick de los botones de la fila
-	 * @param {Object} datos filas devueltas por el back
-	 * @param {Array} mostrarespecial columnas con valor especial
-	 */
-	crearTablaDatos(datos, mostrarespecial){
-		this.dom.limpiar_saltos_linea(datos);
-		super.crearTablaDatos(datos, mostrarespecial);
-	}
-
-	/**
 	 * muestra el error en el campo y devuelve el codigo
 	 */
 	error_campo(id, codigo){
@@ -80,25 +72,6 @@ class funcionalidad extends AbstractEntidad{
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
-	}
-
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
-
-	ADD_id_funcionalidad_validation(){
-		if (!(this.validations.min_size('id_funcionalidad',1))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_funcionalidad',11))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
-		}
-		// solo numeros
-		if (!(this.validations.format('id_funcionalidad','^[0-9]+$'))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
-		}
-		return this.exito_campo('id_funcionalidad');
 	}
 
 	ADD_nombre_funcionalidad_validation(){
@@ -130,12 +103,9 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD)
+		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
+		primaria y foto guardada) no se validan: el usuario no introduce esos datos
 	***********************************************************************************************/
-
-	EDIT_id_funcionalidad_validation(){
-		return this.ADD_id_funcionalidad_validation();
-	}
 
 	EDIT_nombre_funcionalidad_validation(){
 		return this.ADD_nombre_funcionalidad_validation();
@@ -215,7 +185,7 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	EDIT_submit_funcionalidad(){
-		return this.submit_accion('EDIT', ['id_funcionalidad', 'nombre_funcionalidad', 'descrip_funcionalidad']);
+		return this.submit_accion('EDIT', ['nombre_funcionalidad', 'descrip_funcionalidad']);
 	}
 
 	SEARCH_submit_funcionalidad(){
@@ -266,6 +236,7 @@ class funcionalidad extends AbstractEntidad{
 
 		// la clave primaria no se modifica
 		this.dom.assign_property_value('id_funcionalidad','readonly','true');
+		this.dom.quitar_validacion('id_funcionalidad');
 
 		this.dom.colocarboton('EDIT');
 
@@ -312,6 +283,14 @@ class funcionalidad extends AbstractEntidad{
 		// SHOWCURRENT no tiene boton de submit
 
 		setLang();
+	}
+
+	/**
+	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
+	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 */
+	crearTablaDatos(datos, mostrarespecial){
+		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**
