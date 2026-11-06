@@ -1,7 +1,11 @@
+/**
+ * entidad usuario
+ */
 class usuario extends AbstractEntidad{
 
 	/**
-	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 * crea la entidad, muestra su gestion y carga los datos
+	 * @param {string} esTest 'test' si se crea para los test
 	 */
 	constructor(esTest=null){
 
@@ -19,21 +23,21 @@ class usuario extends AbstractEntidad{
 		else{
 			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
-			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
+			// className para que no se acumulen los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
-			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			// mostrar icono de ADD y selector de columnas
 			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			// busqueda en back con el formulario vacio
+			// busqueda inicial
 			this.SEARCH();
 		}
 	}
 
 	/**
-	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
+	 * html del formulario de la entidad
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
@@ -63,14 +67,12 @@ class usuario extends AbstractEntidad{
 		return form_content;
 	}
 
-	/**********************************************************************************************
-		validaciones personalizadas (personalize_atributo)
-	***********************************************************************************************/
+	// ---------- validaciones personalizadas ----------
 
 	/**
-	 * la letra del dni corresponde a su numero (numero % 23)
+	 * la letra del dni es la que le corresponde al numero
 	 * @param {string} id id del campo
-	 * @returns {bool}
+	 * @returns {boolean}
 	 */
 	personalize_dni(id){
 		let valor = document.getElementById(id).value;
@@ -80,7 +82,10 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el error en el campo y devuelve el codigo
+	 * marca el campo con error
+	 * @param {string} id id del campo
+	 * @param {string} codigo codigo de error
+	 * @returns {string} el codigo de error
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -88,18 +93,21 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el exito en el campo y devuelve true
+	 * marca el campo como correcto
+	 * @param {string} id id del campo
+	 * @returns {boolean} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
+	// ---------- validaciones ADD ----------
 
+	/**
+	 * valida dni en ADD (9 caracteres, formato, letra del dni)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_dni_validation(){
 		if (!(this.validations.min_size('dni',9))){
 			return this.error_campo('dni','dni_min_size_ko');
@@ -117,6 +125,10 @@ class usuario extends AbstractEntidad{
 		return this.exito_campo('dni');
 	}
 
+	/**
+	 * valida usuario en ADD (entre 5 y 45 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_usuario_validation(){
 		if (!(this.validations.min_size('usuario',5))){
 			return this.error_campo('usuario','usuario_min_size_ko');
@@ -124,13 +136,17 @@ class usuario extends AbstractEntidad{
 		if (!(this.validations.max_size('usuario',45))){
 			return this.error_campo('usuario','usuario_max_size_ko');
 		}
-		// solo letras sin acentos ni \u00F1
+		// solo letras, sin tildes ni enie
 		if (!(this.validations.format('usuario','^[A-Za-z]+$'))){
     		return this.error_campo('usuario','usuario_format_ko');
 		}
 		return this.exito_campo('usuario');
 	}
 
+	/**
+	 * valida contrasena en ADD (entre 8 y 45 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_contrasena_validation(){
 		if (document.getElementById('contrasena').value.length == 0){
 			return this.exito_campo('contrasena');
@@ -147,6 +163,10 @@ class usuario extends AbstractEntidad{
 		return this.exito_campo('contrasena');
 	}
 
+	/**
+	 * valida id_rol en ADD (entre 1 y 11 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_id_rol_validation(){
 		if (!(this.validations.min_size('id_rol',1))){
 			return this.error_campo('id_rol','id_rol_min_size_ko');
@@ -161,27 +181,38 @@ class usuario extends AbstractEntidad{
 		return this.exito_campo('id_rol');
 	}
 
-	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
-		primaria y foto guardada) no se validan: el usuario no introduce esos datos
-	***********************************************************************************************/
+	// ---------- validaciones EDIT ----------
 
+	/**
+	 * valida usuario en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_usuario_validation(){
 		return this.ADD_usuario_validation();
 	}
 
+	/**
+	 * valida contrasena en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_contrasena_validation(){
 		return this.ADD_contrasena_validation();
 	}
 
+	/**
+	 * valida id_rol en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_id_rol_validation(){
 		return this.ADD_id_rol_validation();
 	}
 
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, valores parciales)
-	***********************************************************************************************/
+	// ---------- validaciones SEARCH ----------
 
+	/**
+	 * valida dni en SEARCH (max 9 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_dni_validation(){
 		if (!(this.validations.max_size('dni',9))){
 			return this.error_campo('dni','dni_max_size_ko');
@@ -192,28 +223,40 @@ class usuario extends AbstractEntidad{
 		return this.exito_campo('dni');
 	}
 
+	/**
+	 * valida usuario en SEARCH (max 45 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_usuario_validation(){
 		if (!(this.validations.max_size('usuario',45))){
 			return this.error_campo('usuario','usuario_max_size_ko');
 		}
-		// en busqueda se permite vacio (* en lugar de +)
+		// en la busqueda puede ir vacio
 		if (!(this.validations.format('usuario','^[A-Za-z]*$'))){
     		return this.error_campo('usuario','usuario_format_ko');
 		}
 		return this.exito_campo('usuario');
 	}
 
+	/**
+	 * valida contrasena en SEARCH (max 45 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_contrasena_validation(){
 		if (!(this.validations.max_size('contrasena',45))){
 			return this.error_campo('contrasena','contrasena_max_size_ko');
 		}
-		// en busqueda se permite vacio (* en lugar de +)
+		// en la busqueda puede ir vacio
 		if (!(this.validations.format('contrasena','^[a-zA-Z]*$'))){
 			return this.error_campo('contrasena','contrasena_format_ko');
 		}
 		return this.exito_campo('contrasena');
 	}
 
+	/**
+	 * valida id_rol en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_rol_validation(){
 		if (!(this.validations.max_size('id_rol',11))){
 			return this.error_campo('id_rol','id_rol_max_size_ko');
@@ -224,16 +267,13 @@ class usuario extends AbstractEntidad{
 		return this.exito_campo('id_rol');
 	}
 
-	/**********************************************************************************************
-		submits
-		@return {bool} true si todos los campos son correctos
-		@return {object} {id_campo: resultado} si alguno falla
-	***********************************************************************************************/
+	// ---------- submits ----------
 
 	/**
-	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @param {Array} campos ids de los campos a validar
+	 * valida la lista de campos con las validaciones de la accion
+	 * @param {string} accion ADD, EDIT, SEARCH...
+	 * @param {Array} campos ids de los campos
+	 * @returns {boolean|Object} true o {campo: resultado}
 	 */
 	submit_accion(accion, campos){
 		var set_result = {};
@@ -254,25 +294,35 @@ class usuario extends AbstractEntidad{
 		}
 	}
 
+	/**
+	 * valida todos los campos del formulario de ADD
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	ADD_submit_usuario(){
 		return this.submit_accion('ADD', ['dni', 'usuario', 'contrasena', 'id_rol']);
 	}
 
+	/**
+	 * valida todos los campos del formulario de EDIT
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	EDIT_submit_usuario(){
 		return this.submit_accion('EDIT', ['usuario', 'contrasena', 'id_rol']);
 	}
 
+	/**
+	 * valida todos los campos del formulario de SEARCH
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	SEARCH_submit_usuario(){
 		return this.submit_accion('SEARCH', ['dni', 'usuario', 'contrasena', 'id_rol']);
 	}
 
-	/**********************************************************************************************
-		formularios por accion
-	***********************************************************************************************/
+	// ---------- formularios ----------
 
 	/**
-	 * id_rol es FK de rol(id_rol): pide al back las filas de rol y devuelve las opciones del select
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_rol (roles del back)
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_rol(){
 		let respuesta = await this.access_functions.peticionBackGeneral('', 'rol', 'SEARCH');
@@ -281,8 +331,8 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * pone el titulo, pinta el formulario vacio y lo hace visible
-	 * @param {string} accion
+	 * pone el titulo y muestra el formulario vacio
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	preparar_formulario(accion){
 		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
@@ -290,6 +340,10 @@ class usuario extends AbstractEntidad{
 		this.dom.show_element('Div_IU_form','block');
 	}
 
+	/**
+	 * formulario de ADD
+	 * @returns {Promise<void>}
+	 */
 	async createForm_ADD(){
 		this.preparar_formulario('ADD');
 		this.dom.crearOpcionesSelect('id_rol', await this.opciones_id_rol(), 'text_opcion_seleccionar');
@@ -304,7 +358,9 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a modificar
+	 * formulario de EDIT con los datos de la fila
+	 * @param {Object} fila datos de la fila
+	 * @returns {Promise<void>}
 	 */
 	async createForm_EDIT(fila){
 		this.preparar_formulario('EDIT');
@@ -326,6 +382,10 @@ class usuario extends AbstractEntidad{
 		setLang();
 	}
 
+	/**
+	 * formulario de SEARCH
+	 * @returns {Promise<void>}
+	 */
 	async createForm_SEARCH(){
 		this.preparar_formulario('SEARCH');
 		this.dom.crearOpcionesSelect('id_rol', await this.opciones_id_rol(), 'text_opcion_todos');
@@ -340,7 +400,8 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a borrar
+	 * formulario de DELETE, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_DELETE(fila){
 		this.preparar_formulario('DELETE');
@@ -357,7 +418,8 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a mostrar
+	 * formulario de SHOWCURRENT, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_SHOWCURRENT(fila){
 		this.preparar_formulario('SHOWCURRENT');
@@ -372,18 +434,19 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
-	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 * refactorizado: pinta la tabla con crearTablaDatosEntidad
+	 * @param {Array} datos tuplas del back
+	 * @param {Array} mostrarespecial columnas con formato especial
 	 */
 	crearTablaDatos(datos, mostrarespecial){
 		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**
-	 * metodo pedido en el enunciado: la contrasena no se muestra en la tabla
-	 * @param {string} atributo nombre del atributo
-	 * @param {any} valorentrada valor original
-	 * @returns {any} valor transformado
+	 * cambia como se muestra un atributo en la tabla
+	 * @param {string} atributo atributo
+	 * @param {*} valorentrada valor que viene del back
+	 * @returns {*} valor a mostrar
 	 */
 	mostrarcambioatributo(atributo, valorentrada){
 		switch(atributo){
@@ -395,7 +458,10 @@ class usuario extends AbstractEntidad{
 	}
 
 	/**
-	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
+	 * lo llama crearTablaDatos de AbstractEntidad
+	 * @param {string} columna atributo
+	 * @param {*} valor valor del atributo
+	 * @returns {*} valor a mostrar
 	 */
 	cambiarmostrarespecial(columna, valor){
 		return this.mostrarcambioatributo(columna, valor);

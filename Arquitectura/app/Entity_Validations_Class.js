@@ -1,9 +1,6 @@
 /**
- * clase para refactorizar los metodos existentes en Validations. NO se pueden crear metodos nuevos.
- *
- * REFACTORIZADO: min_size y max_size
- * El Validations original solo mide INPUT de tipo number/email/text y devuelve undefined
- * para TEXTAREA, SELECT e INPUT password. Aqui se mide la longitud del valor en todos ellos.
+ * refactorizacion de Validations (sin metodos nuevos): min_size y max_size
+ * tambien miden textarea, select y password
  */
 class entity_validations extends Validations{
     constructor(){
@@ -11,10 +8,10 @@ class entity_validations extends Validations{
     }
 
 	/**
-	 * comprueba que el valor del elemento tiene al menos minsize caracteres
-	 * @param {string} id id del elemento html
+	 * refactorizado: mide tambien textarea, select y password
+	 * @param {string} id id del campo
 	 * @param {number} minsize tamano minimo
-	 * @returns {bool} true si cumple, false si no
+	 * @returns {boolean}
 	 */
 	min_size(id, minsize){
 		let elemento = document.getElementById(id);
@@ -41,10 +38,10 @@ class entity_validations extends Validations{
 	}
 
 	/**
-	 * comprueba que el valor del elemento tiene como maximo maxsize caracteres
-	 * @param {string} id id del elemento html
+	 * refactorizado: mide tambien textarea, select y password
+	 * @param {string} id id del campo
 	 * @param {number} maxsize tamano maximo
-	 * @returns {bool} true si cumple, false si no
+	 * @returns {boolean}
 	 */
 	max_size(id, maxsize){
 		let elemento = document.getElementById(id);
