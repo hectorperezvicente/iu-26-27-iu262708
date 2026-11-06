@@ -373,13 +373,13 @@ class entity_dom_fields extends dom_fields{
 
 	/**
 	 * metodo nuevo: pasa la fecha elegida en el calendario al campo de texto como dd/mm/aaaa y lanza el
-	 * evento change del campo para que se ejecute su validacion (borde verde/rojo y mensaje)
+	 * evento blur del campo (colocarvalidaciones valida los input de texto con onblur) para que se ejecute su validacion (borde verde/rojo y mensaje)
 	 * @param {string} idcampo id del campo de texto de la fecha
 	 */
 	elegir_fecha_calendario(idcampo){
 		let campo = document.getElementById(idcampo);
 		campo.value = this.iso_a_fecha(document.getElementById('calendario_'+idcampo).value);
-		campo.dispatchEvent(new Event('change'));
+		campo.dispatchEvent(new Event('blur'));
 	}
 
 	/**********************************************************************************************

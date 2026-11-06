@@ -80,53 +80,6 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
-
-	ADD_id_funcionalidad_validation(){
-		if (!(this.validations.min_size('id_funcionalidad',1))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_funcionalidad',11))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_funcionalidad','^[0-9]+$'))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
-		}
-		return this.exito_campo('id_funcionalidad');
-	}
-
-	ADD_id_accion_validation(){
-		if (!(this.validations.min_size('id_accion',1))){
-			return this.error_campo('id_accion','id_accion_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_accion',11))){
-			return this.error_campo('id_accion','id_accion_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_accion','^[0-9]+$'))){
-			return this.error_campo('id_accion','id_accion_format_ko');
-		}
-		return this.exito_campo('id_accion');
-	}
-
-	ADD_id_rol_validation(){
-		if (!(this.validations.min_size('id_rol',1))){
-			return this.error_campo('id_rol','id_rol_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_rol',11))){
-			return this.error_campo('id_rol','id_rol_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_rol','^[0-9]+$'))){
-			return this.error_campo('id_rol','id_rol_format_ko');
-		}
-		return this.exito_campo('id_rol');
-	}
-
-	/**********************************************************************************************
 		fields validations for SEARCH (campos opcionales, valores parciales)
 	***********************************************************************************************/
 
@@ -168,7 +121,7 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 
 	/**
 	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
+	 * @param {string} accion SEARCH (el ADD se hace desde la matriz, sin formulario)
 	 * @param {Array} campos ids de los campos a validar
 	 */
 	submit_accion(accion, campos){
@@ -188,10 +141,6 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		else{
 			return set_result;
 		}
-	}
-
-	ADD_submit_rolaccionfuncionalidad(){
-		return this.submit_accion('ADD', ['id_funcionalidad', 'id_accion', 'id_rol']);
 	}
 
 	SEARCH_submit_rolaccionfuncionalidad(){
