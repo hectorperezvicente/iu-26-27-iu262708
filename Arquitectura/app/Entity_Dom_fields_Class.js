@@ -7,6 +7,8 @@
  *    llegan como objeto y sin romper los iconos de las filas con apostrofos o &#13;&#10;
  *  - normalizar_fecha, al_cambiar y clase_opcion_vacia: manipulacion del DOM que piden las entidades
  *    (persona y rolaccionfuncionalidad), para no hacerla directamente desde la clase de entidad
+ *  - fecha_a_iso, iso_a_fecha, activar_calendario, abrir_calendario y elegir_fecha_calendario: calendario
+ *    para elegir las fechas (persona), sin dejar de poder escribirlas
  *  - quitar_validacion: quita el evento de validacion de los campos de solo lectura de EDIT
  *  - configurar_cabecera_gestion, valores_formulario, preparar_contenedor_matriz, crearSelectorMatriz
  *    y crearMatriz: matriz de casillas con la que se gestionan funcionalidad_accion y
@@ -297,6 +299,87 @@ class entity_dom_fields extends dom_fields{
 		let campo = document.getElementById(id);
 		campo.removeAttribute('onblur');
 		campo.removeAttribute('onchange');
+	}
+
+	/**********************************************************************************************
+		METODOS NUEVOS PARA EL CALENDARIO DE LOS CAMPOS DE FECHA (persona: fechaNacimiento_persona)
+		El campo de texto sigue siendo el que se valida y se envia (dd/mm/aaaa). El calendario es un
+		input date auxiliar (formato aaaa-mm-dd) que solo sirve para elegir la fecha: se convierte al
+		formato del campo de texto y se lanza su validacion.
+	***********************************************************************************************/
+
+	/**
+	 * metodo nuevo: d/m/aaaa o dd/mm/aaaa -> aaaa-mm-dd (formato del input date). Si no es una fecha que
+	 * exista en el calendario devuelve cadena vacia
+	 * @param {string} texto fecha escrita en el campo
+	 * @returns {string}
+	 */
+	fecha_a_iso(texto){
+		let partes = /^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/.exec(texto);
+		if (partes === null){
+			return '';
+		}
+		let dia = parseInt(partes[1], 10);
+		let mes = parseInt(partes[2], 10);
+		let anio = parseInt(partes[3], 10);
+		let fecha = new Date(anio, mes - 1, dia);
+		if (fecha.getFullYear() != anio || fecha.getMonth() != mes - 1 || fecha.getDate() != dia){
+			return '';
+		}
+		return partes[3] + '-' + String(mes).padStart(2,'0') + '-' + String(dia).padStart(2,'0');
+	}
+
+	/**
+	 * metodo nuevo: aaaa-mm-dd (valor del input date) -> dd/mm/aaaa (formato del campo de texto).
+	 * Se trocea la cadena a mano: new Date('aaaa-mm-dd') se interpreta en UTC y en Espana puede dar el dia anterior
+	 * @param {string} iso
+	 * @returns {string} cadena vacia si no tiene el formato aaaa-mm-dd
+	 */
+	iso_a_fecha(iso){
+		let partes = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(iso);
+		return (partes === null) ? '' : partes[3] + '/' + partes[2] + '/' + partes[1];
+	}
+
+	/**
+	 * metodo nuevo: hace visible el icono del calendario de un campo de fecha (ADD y EDIT) y le pone
+	 * el texto de ayuda en el idioma activo
+	 * @param {string} idcampo id del campo de texto de la fecha
+	 */
+	activar_calendario(idcampo){
+		let boton = document.getElementById('boton_calendario_'+idcampo);
+		boton.title = (window.traduccion && window.traduccion['text_icono_calendario']) ? window.traduccion['text_icono_calendario'] : '';
+		boton.setAttribute('aria-label', boton.title);
+		document.getElementById('selector_calendario_'+idcampo).style.display = 'inline-block';
+	}
+
+	/**
+	 * metodo nuevo: abre el calendario del campo. Lo coloca en la fecha escrita (si es valida) y no deja
+	 * elegir fechas posteriores a hoy (la validacion del campo las rechaza)
+	 * @param {string} idcampo id del campo de texto de la fecha
+	 */
+	abrir_calendario(idcampo){
+		let calendario = document.getElementById('calendario_'+idcampo);
+		let hoy = new Date();
+		calendario.max = String(hoy.getFullYear()).padStart(4,'0') + '-' + String(hoy.getMonth() + 1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
+		calendario.value = this.fecha_a_iso(document.getElementById(idcampo).value);
+		if (typeof calendario.showPicker == 'function'){
+			calendario.showPicker();
+		}
+		else{
+			calendario.focus();
+			calendario.click();
+		}
+	}
+
+	/**
+	 * metodo nuevo: pasa la fecha elegida en el calendario al campo de texto como dd/mm/aaaa y lanza el
+	 * evento change del campo para que se ejecute su validacion (borde verde/rojo y mensaje)
+	 * @param {string} idcampo id del campo de texto de la fecha
+	 */
+	elegir_fecha_calendario(idcampo){
+		let campo = document.getElementById(idcampo);
+		campo.value = this.iso_a_fecha(document.getElementById('calendario_'+idcampo).value);
+		campo.dispatchEvent(new Event('change'));
 	}
 
 	/**********************************************************************************************

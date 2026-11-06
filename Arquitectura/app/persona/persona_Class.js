@@ -60,6 +60,17 @@ class persona extends AbstractEntidad{
 
 				<label id="label_fechaNacimiento_persona" class="label_fechaNacimiento_persona">Fecha de Nacimiento</label>
 				<input type='text' id='fechaNacimiento_persona' name='fechaNacimiento_persona' placeholder='dd/mm/aaaa'></input>
+				<!-- calendario (solo ADD y EDIT, activar_calendario lo hace visible). El input date no tiene name y su atributo form
+				     apunta a un formulario que no existe: asi no entra en form_iu (ni se envia, ni lo toca colocarvalidaciones).
+				     Los eventos van como atributos para sobrevivir al innerHTML que restaura el formulario tras las pruebas -->
+				<span id="selector_calendario_fechaNacimiento_persona" style="display:none; position:relative;">
+					<span id="boton_calendario_fechaNacimiento_persona" role="button" tabindex="0" style="cursor:pointer;"
+						onclick="entidad.dom.abrir_calendario('fechaNacimiento_persona')"
+						onkeydown="if (event.key === 'Enter' || event.key === ' '){ event.preventDefault(); entidad.dom.abrir_calendario('fechaNacimiento_persona'); }">&#128197;</span>
+					<input type="date" id="calendario_fechaNacimiento_persona" form="sin_formulario_calendario" tabindex="-1" aria-hidden="true"
+						style="position:absolute; left:0; bottom:0; width:1px; height:1px; opacity:0; border:0; padding:0; pointer-events:none;"
+						onchange="entidad.dom.elegir_fecha_calendario('fechaNacimiento_persona')">
+				</span>
 				<span id="span_error_fechaNacimiento_persona"><a id="error_fechaNacimiento_persona"></a></span>
 				<br>
 
@@ -542,6 +553,8 @@ class persona extends AbstractEntidad{
 
 		this.dom.colocarvalidaciones('form_iu','ADD');
 		this.mostrar_nuevo_foto_persona();
+		// calendario para elegir la fecha de nacimiento (ademas de poder escribirla)
+		this.dom.activar_calendario('fechaNacimiento_persona');
 		this.dom.colocarboton('ADD');
 
 		setLang();
@@ -565,6 +578,8 @@ class persona extends AbstractEntidad{
 
 		this.dom.colocarvalidaciones('form_iu','EDIT');
 		this.mostrar_nuevo_foto_persona();
+		// calendario para elegir la fecha de nacimiento (se abre en la fecha que ya tiene la fila)
+		this.dom.activar_calendario('fechaNacimiento_persona');
 
 		// clave primaria y nombre de foto guardada no se modifican
 		this.dom.assign_property_value('dni','readonly','true');
