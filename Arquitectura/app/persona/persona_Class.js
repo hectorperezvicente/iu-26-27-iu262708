@@ -1,7 +1,11 @@
+/**
+ * entidad persona
+ */
 class persona extends AbstractEntidad{
 
 	/**
-	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 * crea la entidad, muestra su gestion y carga los datos
+	 * @param {string} esTest 'test' si se crea para los test
 	 */
 	constructor(esTest=null){
 
@@ -21,21 +25,21 @@ class persona extends AbstractEntidad{
 		else{
 			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
-			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
+			// className para que no se acumulen los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
-			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			// mostrar icono de ADD y selector de columnas
 			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			// busqueda en back con el formulario vacio
+			// busqueda inicial
 			this.SEARCH();
 		}
 	}
 
 	/**
-	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
+	 * html del formulario de la entidad
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
@@ -105,13 +109,12 @@ class persona extends AbstractEntidad{
 		return form_content;
 	}
 
-	/**********************************************************************************************
-		validaciones personalizadas (personalize_atributo)
-		@return {bool} true si cumple, false si no
-	***********************************************************************************************/
+	// ---------- validaciones personalizadas ----------
 
 	/**
-	 * la letra del dni corresponde a su numero (numero % 23)
+	 * la letra del dni es la que le corresponde al numero
+	 * @param {string} id id del campo
+	 * @returns {boolean}
 	 */
 	personalize_dni(id){
 		let valor = document.getElementById(id).value;
@@ -121,7 +124,9 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * la fecha d/m/aaaa existe en el calendario (incluye bisiestos)
+	 * la fecha existe (bisiestos incluidos)
+	 * @param {string} id id del campo
+	 * @returns {boolean}
 	 */
 	personalize_fechaNacimiento_persona(id){
 		let partes = document.getElementById(id).value.split('/');
@@ -133,7 +138,9 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * la fecha d/m/aaaa no es posterior a hoy
+	 * la fecha no es posterior a hoy
+	 * @param {string} id id del campo
+	 * @returns {boolean}
 	 */
 	personalize_fechaNacimiento_persona_no_futura(id){
 		let partes = document.getElementById(id).value.split('/');
@@ -144,7 +151,9 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * en SEARCH: si se busca por una fecha completa tiene que existir; las busquedas parciales son validas
+	 * en la busqueda, si la fecha esta completa tiene que existir
+	 * @param {string} id id del campo
+	 * @returns {boolean}
 	 */
 	personalize_fechaNacimiento_persona_busqueda(id){
 		let valor = document.getElementById(id).value;
@@ -156,6 +165,8 @@ class persona extends AbstractEntidad{
 
 	/**
 	 * el telefono empieza por 6, 7, 8 o 9
+	 * @param {string} id id del campo
+	 * @returns {boolean}
 	 */
 	personalize_telefono_persona(id){
 		let valor = document.getElementById(id).value;
@@ -164,20 +175,29 @@ class persona extends AbstractEntidad{
 
 	/**
 	 * el nombre del fichero tiene al menos minsize caracteres
+	 * @param {string} id id del campo
+	 * @param {number} minsize tamano minimo
+	 * @returns {boolean}
 	 */
 	personalize_nuevo_foto_persona_min_size_name(id, minsize){
 		return (document.getElementById(id).files[0].name.length >= minsize);
 	}
 
 	/**
-	 * el nombre del fichero tiene como maximo maxsize caracteres
+	 * el nombre del fichero tiene como mucho maxsize caracteres
+	 * @param {string} id id del campo
+	 * @param {number} maxsize tamano maximo
+	 * @returns {boolean}
 	 */
 	personalize_nuevo_foto_persona_max_size_name(id, maxsize){
 		return (document.getElementById(id).files[0].name.length <= maxsize);
 	}
 
 	/**
-	 * muestra el error en el campo y devuelve el codigo
+	 * marca el campo con error
+	 * @param {string} id id del campo
+	 * @param {string} codigo codigo de error
+	 * @returns {string} el codigo de error
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -185,18 +205,21 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el exito en el campo y devuelve true
+	 * marca el campo como correcto
+	 * @param {string} id id del campo
+	 * @returns {boolean} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
+	// ---------- validaciones ADD ----------
 
+	/**
+	 * valida dni en ADD (9 caracteres, formato, letra del dni)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_dni_validation(){
 		if (!(this.validations.min_size('dni',9))){
 			return this.error_campo('dni','dni_min_size_ko');
@@ -214,6 +237,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('dni');
 	}
 
+	/**
+	 * valida nombre_persona en ADD (entre 2 y 45 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_nombre_persona_validation(){
 		if (!(this.validations.min_size('nombre_persona',2))){
 			return this.error_campo('nombre_persona','nombre_persona_min_size_ko');
@@ -228,6 +255,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('nombre_persona');
 	}
 
+	/**
+	 * valida apellidos_persona en ADD (entre 3 y 100 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_apellidos_persona_validation(){
 		if (!(this.validations.min_size('apellidos_persona',3))){
 			return this.error_campo('apellidos_persona','apellidos_persona_min_size_ko');
@@ -241,6 +272,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('apellidos_persona');
 	}
 
+	/**
+	 * valida fechaNacimiento_persona en ADD (entre 8 y 10 caracteres, formato, fecha existente, no futura)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_fechaNacimiento_persona_validation(){
 		if (!(this.validations.min_size('fechaNacimiento_persona',8))){
 			return this.error_campo('fechaNacimiento_persona','fechaNacimiento_persona_min_size_ko');
@@ -263,6 +298,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('fechaNacimiento_persona');
 	}
 
+	/**
+	 * valida direccion_persona en ADD (entre 10 y 200 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_direccion_persona_validation(){
 		if (!(this.validations.min_size('direccion_persona',10))){
 			return this.error_campo('direccion_persona','direccion_persona_min_size_ko');
@@ -277,6 +316,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('direccion_persona');
 	}
 
+	/**
+	 * valida telefono_persona en ADD (9 caracteres, formato, empieza por 6, 7, 8 o 9)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_telefono_persona_validation(){
 		if (!(this.validations.min_size('telefono_persona',9))){
 			return this.error_campo('telefono_persona','telefono_persona_min_size_ko');
@@ -293,6 +336,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('telefono_persona');
 	}
 
+	/**
+	 * valida email_persona en ADD (entre 6 y 45 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_email_persona_validation(){
 		if (!(this.validations.min_size('email_persona',6))){
 			return this.error_campo('email_persona','email_persona_min_size_ko');
@@ -307,6 +354,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('email_persona');
 	}
 
+	/**
+	 * valida nuevo_foto_persona en ADD (fichero)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_nuevo_foto_persona_validation(){
 		if (!(this.validations.exist_file('nuevo_foto_persona'))){
 			return this.error_campo('nuevo_foto_persona','nuevo_foto_persona_exist_file_ko');
@@ -315,7 +366,8 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * comprobaciones del fichero de foto cuando hay fichero seleccionado
+	 * comprueba tipo, tamano y nombre del fichero de la foto
+	 * @returns {string|boolean} codigo de error o true
 	 */
 	nuevo_foto_persona_comprobar_fichero(){
 		if (!(this.personalize_nuevo_foto_persona_min_size_name('nuevo_foto_persona',5))){
@@ -337,20 +389,43 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('nuevo_foto_persona');
 	}
 
-	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
-		primaria y foto guardada) no se validan: el usuario no introduce esos datos
-	***********************************************************************************************/
+	// ---------- validaciones EDIT ----------
 
+	/**
+	 * valida nombre_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_nombre_persona_validation(){ return this.ADD_nombre_persona_validation(); }
+	/**
+	 * valida apellidos_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_apellidos_persona_validation(){ return this.ADD_apellidos_persona_validation(); }
+	/**
+	 * valida fechaNacimiento_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_fechaNacimiento_persona_validation(){ return this.ADD_fechaNacimiento_persona_validation(); }
+	/**
+	 * valida direccion_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_direccion_persona_validation(){ return this.ADD_direccion_persona_validation(); }
+	/**
+	 * valida telefono_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_telefono_persona_validation(){ return this.ADD_telefono_persona_validation(); }
+	/**
+	 * valida email_persona en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_email_persona_validation(){ return this.ADD_email_persona_validation(); }
 
-	// en EDIT la foto nueva es opcional: si no se elige fichero se mantiene la actual,
-	// si se elige se comprueba igual que en ADD
+	/**
+	 * valida nuevo_foto_persona en EDIT (fichero opcional)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_nuevo_foto_persona_validation(){
 		if (!(this.validations.exist_file('nuevo_foto_persona'))){
 			return this.exito_campo('nuevo_foto_persona');
@@ -358,10 +433,12 @@ class persona extends AbstractEntidad{
 		return this.nuevo_foto_persona_comprobar_fichero();
 	}
 
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, valores parciales)
-	***********************************************************************************************/
+	// ---------- validaciones SEARCH ----------
 
+	/**
+	 * valida dni en SEARCH (max 9 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_dni_validation(){
 		if (!(this.validations.max_size('dni',9))){
 			return this.error_campo('dni','dni_max_size_ko');
@@ -372,6 +449,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('dni');
 	}
 
+	/**
+	 * valida nombre_persona en SEARCH (max 45 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_nombre_persona_validation(){
 		if (!(this.validations.max_size('nombre_persona',45))){
 			return this.error_campo('nombre_persona','nombre_persona_max_size_ko');
@@ -382,6 +463,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('nombre_persona');
 	}
 
+	/**
+	 * valida apellidos_persona en SEARCH (max 100 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_apellidos_persona_validation(){
 		if (!(this.validations.max_size('apellidos_persona',100))){
 			return this.error_campo('apellidos_persona','apellidos_persona_max_size_ko');
@@ -392,6 +477,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('apellidos_persona');
 	}
 
+	/**
+	 * valida fechaNacimiento_persona en SEARCH (max 10 caracteres, formato, fecha existente si esta completa). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_fechaNacimiento_persona_validation(){
 		if (!(this.validations.max_size('fechaNacimiento_persona',10))){
 			return this.error_campo('fechaNacimiento_persona','fechaNacimiento_persona_max_size_ko');
@@ -405,6 +494,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('fechaNacimiento_persona');
 	}
 
+	/**
+	 * valida direccion_persona en SEARCH (max 200 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_direccion_persona_validation(){
 		if (!(this.validations.max_size('direccion_persona',200))){
 			return this.error_campo('direccion_persona','direccion_persona_max_size_ko');
@@ -415,6 +508,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('direccion_persona');
 	}
 
+	/**
+	 * valida telefono_persona en SEARCH (max 9 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_telefono_persona_validation(){
 		if (!(this.validations.max_size('telefono_persona',9))){
 			return this.error_campo('telefono_persona','telefono_persona_max_size_ko');
@@ -425,6 +522,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('telefono_persona');
 	}
 
+	/**
+	 * valida email_persona en SEARCH (max 45 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_email_persona_validation(){
 		if (!(this.validations.max_size('email_persona',45))){
 			return this.error_campo('email_persona','email_persona_max_size_ko');
@@ -435,6 +536,10 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('email_persona');
 	}
 
+	/**
+	 * valida foto_persona en SEARCH (max 15 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_foto_persona_validation(){
 		if (!(this.validations.max_size('foto_persona',15))){
 			return this.error_campo('foto_persona','foto_persona_max_size_ko');
@@ -445,16 +550,13 @@ class persona extends AbstractEntidad{
 		return this.exito_campo('foto_persona');
 	}
 
-	/**********************************************************************************************
-		submits
-		@return {bool} true si todos los campos son correctos
-		@return {object} {id_campo: resultado} si alguno falla
-	***********************************************************************************************/
+	// ---------- submits ----------
 
 	/**
-	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @param {Array} campos ids de los campos a validar
+	 * valida la lista de campos con las validaciones de la accion
+	 * @param {string} accion ADD, EDIT, SEARCH...
+	 * @param {Array} campos ids de los campos
+	 * @returns {boolean|Object} true o {campo: resultado}
 	 */
 	submit_accion(accion, campos){
 		var set_result = {};
@@ -475,32 +577,38 @@ class persona extends AbstractEntidad{
 		}
 	}
 
-	// foto_persona no se valida: esta oculto y lo rellena el back
+	/**
+	 * valida todos los campos del formulario de ADD
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	ADD_submit_persona(){
 		return this.submit_accion('ADD', ['dni','nombre_persona','apellidos_persona','fechaNacimiento_persona',
 			'direccion_persona','telefono_persona','email_persona','nuevo_foto_persona']);
 	}
 
-	// dni y foto_persona no se validan: son de solo lectura (el usuario no introduce esos datos)
+	/**
+	 * valida todos los campos del formulario de EDIT
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	EDIT_submit_persona(){
 		return this.submit_accion('EDIT', ['nombre_persona', 'apellidos_persona', 'fechaNacimiento_persona', 'direccion_persona', 'telefono_persona', 'email_persona', 'nuevo_foto_persona']);
 	}
 
-	// nuevo_foto_persona no se valida: en SEARCH esta oculto
+	/**
+	 * valida todos los campos del formulario de SEARCH
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	SEARCH_submit_persona(){
 		return this.submit_accion('SEARCH', ['dni','nombre_persona','apellidos_persona','fechaNacimiento_persona',
 			'direccion_persona','telefono_persona','email_persona','foto_persona']);
 	}
 
-	/**********************************************************************************************
-		formularios por accion
-	***********************************************************************************************/
+	// ---------- formularios ----------
 
 	/**
-	 * dni es FK de usuario(dni): pide al back los usuarios y devuelve las opciones del select.
-	 * Si solo_libres es true quita los dni que ya tienen persona (en ADD no se puede repetir la PK)
-	 * @param {bool} solo_libres
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de dni (usuarios del back)
+	 * @param {boolean} solo_libres quitar los dni que ya tienen persona
+	 * @returns {Array} opciones
 	 */
 	async opciones_dni(solo_libres){
 		let usuarios = await this.access_functions.peticionBackGeneral('', 'usuario', 'SEARCH');
@@ -514,8 +622,8 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * pone el titulo, pinta el formulario vacio y lo hace visible
-	 * @param {string} accion
+	 * pone el titulo y muestra el formulario vacio
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	preparar_formulario(accion){
 		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
@@ -524,7 +632,7 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * nuevo_foto_persona y su label visibles (display block) en ADD y EDIT
+	 * muestra el campo de subir foto (ADD y EDIT)
 	 */
 	mostrar_nuevo_foto_persona(){
 		this.dom.show_element('label_nuevo_foto_persona');
@@ -532,28 +640,32 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * nuevo_foto_persona y su label no visibles (display none) en SEARCH, DELETE y SHOWCURRENT
+	 * oculta el campo de subir foto
 	 */
 	ocultar_nuevo_foto_persona(){
 		this.dom.hide_element_form('nuevo_foto_persona');
 	}
 
+	/**
+	 * formulario de ADD
+	 * @returns {Promise<void>}
+	 */
 	async createForm_ADD(){
 		this.preparar_formulario('ADD');
 
-		// select de dni con los usuarios que aun no tienen persona
+		// solo usuarios sin persona
 		this.dom.crearOpcionesSelect('dni', await this.opciones_dni(true), 'text_opcion_seleccionar');
 
 		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.ADD_submit_'+this.nombreentidad+'())');
 		this.dom.assign_property_value('form_iu','action','javascript:entidad.ADD();');
 
-		// en ADD solo se sube fichero: foto_persona y su enlace ocultos
+		// en ADD solo se sube el fichero
 		this.dom.hide_element_form('foto_persona');
 		this.dom.hide_element('link_foto_persona');
 
 		this.dom.colocarvalidaciones('form_iu','ADD');
 		this.mostrar_nuevo_foto_persona();
-		// calendario para elegir la fecha de nacimiento (ademas de poder escribirla)
+		// calendario
 		this.dom.activar_calendario('fechaNacimiento_persona');
 		this.dom.colocarboton('ADD');
 
@@ -561,7 +673,8 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a modificar
+	 * formulario de EDIT con los datos de la fila
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_EDIT(fila){
 		this.preparar_formulario('EDIT');
@@ -572,16 +685,16 @@ class persona extends AbstractEntidad{
 		this.dom.assign_property_value('link_foto_persona','href',this.url_fotos+fila.foto_persona);
 
 		fila.fechaNacimiento_persona = this.cambiarformatoFecha(fila.fechaNacimiento_persona);
-		// dni (PK) no se modifica: el select solo tiene el dni de la fila
+		// el dni no se cambia
 		this.dom.crearOpcionesSelect('dni', [{valor: fila.dni, texto: fila.dni}]);
 		this.dom.rellenarvaloresform(fila);
 
 		this.dom.colocarvalidaciones('form_iu','EDIT');
 		this.mostrar_nuevo_foto_persona();
-		// calendario para elegir la fecha de nacimiento (se abre en la fecha que ya tiene la fila)
+		// calendario
 		this.dom.activar_calendario('fechaNacimiento_persona');
 
-		// clave primaria y nombre de foto guardada no se modifican
+		// dni y foto guardada no se cambian
 		this.dom.assign_property_value('dni','readonly','true');
 		this.dom.quitar_validacion('dni');
 		this.dom.assign_property_value('foto_persona','readonly','true');
@@ -592,16 +705,20 @@ class persona extends AbstractEntidad{
 		setLang();
 	}
 
+	/**
+	 * formulario de SEARCH
+	 * @returns {Promise<void>}
+	 */
 	async createForm_SEARCH(){
 		this.preparar_formulario('SEARCH');
 
-		// select de dni con todos los usuarios y una opcion vacia para no filtrar por dni
+		// todos los usuarios y opcion vacia
 		this.dom.crearOpcionesSelect('dni', await this.opciones_dni(false), 'text_opcion_todos');
 
 		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.SEARCH_submit_'+this.nombreentidad+'())');
 		this.dom.assign_property_value('form_iu','action','javascript:entidad.SEARCH();');
 
-		// en SEARCH se busca por nombre de foto: sin fichero ni enlace
+		// en SEARCH se busca por nombre de foto
 		this.ocultar_nuevo_foto_persona();
 		this.dom.hide_element('link_foto_persona');
 
@@ -612,7 +729,8 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a borrar
+	 * formulario de DELETE, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_DELETE(fila){
 		this.preparar_formulario('DELETE');
@@ -623,7 +741,7 @@ class persona extends AbstractEntidad{
 		this.dom.assign_property_value('link_foto_persona','href',this.url_fotos+fila.foto_persona);
 
 		fila.fechaNacimiento_persona = this.cambiarformatoFecha(fila.fechaNacimiento_persona);
-		// dni (PK) no se modifica: el select solo tiene el dni de la fila
+		// el dni no se cambia
 		this.dom.crearOpcionesSelect('dni', [{valor: fila.dni, texto: fila.dni}]);
 		this.dom.rellenarvaloresform(fila);
 
@@ -634,7 +752,8 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a mostrar
+	 * formulario de SHOWCURRENT, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_SHOWCURRENT(fila){
 		this.preparar_formulario('SHOWCURRENT');
@@ -643,7 +762,7 @@ class persona extends AbstractEntidad{
 		this.dom.assign_property_value('link_foto_persona','href',this.url_fotos+fila.foto_persona);
 
 		fila.fechaNacimiento_persona = this.cambiarformatoFecha(fila.fechaNacimiento_persona);
-		// dni (PK) no se modifica: el select solo tiene el dni de la fila
+		// el dni no se cambia
 		this.dom.crearOpcionesSelect('dni', [{valor: fila.dni, texto: fila.dni}]);
 		this.dom.rellenarvaloresform(fila);
 
@@ -653,13 +772,11 @@ class persona extends AbstractEntidad{
 		setLang();
 	}
 
-	/**********************************************************************************************
-		presentacion de datos
-	***********************************************************************************************/
+	// ---------- tabla ----------
 
 	/**
-	 * aaaa-mm-dd (formato del back) -> dd/mm/aaaa. Si ya viene en otro formato se deja igual
-	 * @param {string} stringfecha
+	 * pasa la fecha del back a dd/mm/aaaa
+	 * @param {string} stringfecha fecha del back
 	 * @returns {string}
 	 */
 	cambiarformatoFecha(stringfecha){
@@ -671,18 +788,19 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
-	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 * refactorizado: pinta la tabla con crearTablaDatosEntidad
+	 * @param {Array} datos tuplas del back
+	 * @param {Array} mostrarespecial columnas con formato especial
 	 */
 	crearTablaDatos(datos, mostrarespecial){
 		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**
-	 * metodo pedido en el enunciado: devuelve el formato especial a mostrar del valor del atributo
-	 * @param {string} atributo nombre del atributo
-	 * @param {any} valorentrada valor original
-	 * @returns {any} valor transformado
+	 * cambia como se muestra un atributo en la tabla
+	 * @param {string} atributo atributo
+	 * @param {*} valorentrada valor que viene del back
+	 * @returns {*} valor a mostrar
 	 */
 	mostrarcambioatributo(atributo, valorentrada){
 		switch(atributo){
@@ -696,7 +814,10 @@ class persona extends AbstractEntidad{
 	}
 
 	/**
-	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
+	 * lo llama crearTablaDatos de AbstractEntidad
+	 * @param {string} columna atributo
+	 * @param {*} valor valor del atributo
+	 * @returns {*} valor a mostrar
 	 */
 	cambiarmostrarespecial(columna, valor){
 		return this.mostrarcambioatributo(columna, valor);

@@ -35,7 +35,7 @@ var textos_ES = {
 	'text_opcion_seleccionar': '-- Seleccione --',
 	'text_opcion_todos': '-- Todos --',
 
-	// matriz de las tablas de permisos (funcionalidad_accion y rolaccionfuncionalidad)
+	// matriz de permisos
 	'text_matriz_esquina': 'Funcionalidad \\ Acci\u00F3n',
 	'label_matriz_rol': 'Rol:',
 	'text_matriz_ayuda': 'Los cambios se guardan autom\u00E1ticamente al marcar o desmarcar una casilla; no hay que pulsar otro bot\u00F3n.',

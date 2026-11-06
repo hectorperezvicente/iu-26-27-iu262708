@@ -1,25 +1,20 @@
 /**
- * clase para poder refactorizar los metodos que se considere adecuados manteniendo la definicion de los mismos y para inclusion de nuevos metodos
- *
- * REFACTORIZADO: data_test_class
- *  - usa entity_dom_fields (Data_Test crea un dom_fields, que no sabe crear textarea ni select)
- *  - vacia el contenedor del formulario antes de las pruebas (si estaba el formulario de la entidad
- *    cargado, getElementById devolveria sus campos en vez de los de la prueba) y lo restaura despues
- *  - muestra el resultado en una ventana nueva, con un resumen de correctas/incorrectas.
- *    El titulo y el resumen salen del fichero de idioma activo (la ventana nueva no tiene setLang,
- *    asi que el texto se toma de window.traduccion al generarla)
- *  - si el navegador bloquea la ventana nueva se avisa con el modal de error, con el texto traducido
+ * refactorizacion de Data_Test: los resultados salen en una ventana nueva
  */
 class entity_Test_Data extends Data_Test{
     constructor(entidad){
         super(entidad);
     }
 
+	/**
+	 * refactorizado: ejecuta los test y saca el resultado en una ventana nueva
+	 * @returns {boolean} false si se bloquea la ventana
+	 */
 	data_test_class(){
 
 		this.dom = new entity_dom_fields();
 
-		// guardar estado del formulario y vaciarlo
+		// guardar el formulario y vaciarlo
 		var formulario_previo = document.getElementById('contenedor_IU_form').innerHTML;
 		this.dom.vaciarDiv('contenedor_IU_form');
 
@@ -28,7 +23,7 @@ class entity_Test_Data extends Data_Test{
 		// restaurar el formulario
 		document.getElementById('contenedor_IU_form').innerHTML = formulario_previo;
 
-		// pintar la tabla con el metodo de la arquitectura en un div auxiliar y copiarla a la ventana nueva
+		// se pinta la tabla en un div auxiliar y se copia a la ventana
 		let marcados = {
 			pruebastatus: {value:'INCORRECTO', style:'background-color: red'},
 			traduccionError : {value:'sintraduccion', style:'background-color: red'}

@@ -35,7 +35,7 @@ var textos_EN = {
 	'text_opcion_seleccionar': '-- Select --',
 	'text_opcion_todos': '-- All --',
 
-	// matriz de las tablas de permisos (funcionalidad_accion y rolaccionfuncionalidad)
+	// matriz de permisos
 	'text_matriz_esquina': 'Functionality \\ Action',
 	'label_matriz_rol': 'Role:',
 	'text_matriz_ayuda': 'Changes are saved automatically when a box is checked or unchecked; there is no other button to press.',
