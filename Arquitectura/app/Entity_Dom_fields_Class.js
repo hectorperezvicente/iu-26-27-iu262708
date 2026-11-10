@@ -1,30 +1,6 @@
 /**
- * clase para refactorizar los metodos de dom_fields que se consideren necesarios sin modificar su definicion y para inclusion de nuevos metodos
- *
- * NUEVOS:
- *  - crearOpcionesSelect: rellena los select de los atributos FK
- *  - crearTablaDatosEntidad: crearTablaDatos de AbstractEntidad aplanando las claves foraneas que
- *    llegan como objeto y sin romper los iconos de las filas con apostrofos o &#13;&#10;
- *  - normalizar_fecha, al_cambiar y clase_opcion_vacia: manipulacion del DOM que piden las entidades
- *    (persona y rolaccionfuncionalidad), para no hacerla directamente desde la clase de entidad
- *  - fecha_a_iso, iso_a_fecha, activar_calendario, abrir_calendario y elegir_fecha_calendario: calendario
- *    para elegir las fechas (persona), sin dejar de poder escribirlas
- *  - quitar_validacion: quita el evento de validacion de los campos de solo lectura de EDIT
- *  - configurar_cabecera_gestion, valores_formulario, preparar_contenedor_matriz, crearSelectorMatriz
- *    y crearMatriz: matriz de casillas con la que se gestionan funcionalidad_accion y
- *    rolaccionfuncionalidad (sustituye a la tabla de tuplas en esas dos entidades)
- *
- * REFACTORIZADOS:
- *  - crearElementoHtml: el original no rellena textarea ni crea select (los crea vacios) y si la prueba
- *    de un input no trae valor no crea el elemento.
- *  - mostrar_error_campo / mostrar_exito_campo: el original acumula las clases de error en el <a>,
- *    y setLang podia acabar pintando el mensaje de un error anterior.
- *  - abrirModalError: el original hace classList.add = codigo (asignacion, no llamada),
- *    asi que el mensaje de error de accion nunca se traducia. Si el codigo del back no esta en
- *    los ficheros de idioma, muestra un mensaje generico traducido y el codigo del back.
- *  - colocarboton: pone clase de traduccion al icono del submit (alt y title traducidos).
- *  - rellenarvaloresform: deja vacios los campos que no vienen en la fila (el original escribe "undefined")
- *    y convierte las entidades html del back (&#13;&#10;) antes de rellenar.
+ * refactorizacion de dom_fields y metodos nuevos para las entidades
+ * (selects de FK, tabla, calendario de fechas y matriz de permisos)
  */
 class entity_dom_fields extends dom_fields{
     constructor(){
@@ -32,14 +8,12 @@ class entity_dom_fields extends dom_fields{
     }
 
 	/**
-	 * crea un elemento del DOM para las pruebas y lo coloca en el contenedor
-	 *
-	 * @param {string} contenedor id del contenedor donde colocar el elemento
-	 * @param {string} tag tipo de elemento (input, textarea, select, file, submit u otro tag)
-	 * @param {string} nombrecampo name e id del elemento
-	 * @param {object} valores objeto {campo: valor} con el valor de la prueba
-	 * @param {object} extra no se usa
-	 * @returns void
+	 * refactorizado: tambien crea textarea y select para las pruebas
+	 * @param {string} contenedor id del contenedor
+	 * @param {string} tag tipo de elemento
+	 * @param {string} nombrecampo id y name del campo
+	 * @param {Object} valores valores de la prueba
+	 * @param {*} extra no se usa
 	 */
 	crearElementoHtml(contenedor, tag, nombrecampo, valores, extra=null){
 
@@ -90,9 +64,9 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * muestra el error del campo: borde rojo y mensaje (traducido por setLang con el codigo como clase)
+	 * refactorizado: borde rojo y mensaje de error del campo
 	 * @param {string} id id del campo
-	 * @param {string} codigoerror codigo del error
+	 * @param {string} codigoerror codigo de error
 	 */
 	mostrar_error_campo(id, codigoerror){
 		document.getElementById('span_error_'+id).style.display = 'inline';
@@ -103,7 +77,7 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * muestra el campo como correcto: borde verde y sin mensaje
+	 * refactorizado: borde verde y quita el mensaje
 	 * @param {string} id id del campo
 	 */
 	mostrar_exito_campo(id){
@@ -114,10 +88,7 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * abre el modal de error de accion con el codigo devuelto por el back.
-	 * Si el codigo esta en los ficheros de idioma se muestra su traduccion; si no, se muestra un mensaje
-	 * generico traducido seguido del propio codigo de error del back, para que siempre se vea el error real.
-	 * El formulario no se toca: al cerrar el modal sigue como estaba para corregir el error
+	 * refactorizado: modal de error con el texto traducido, o el codigo si no hay traduccion
 	 * @param {string} errorMsg codigo de error
 	 */
 	abrirModalError(errorMsg){
@@ -138,9 +109,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * REFACTORIZADO: coloca el boton de submit como el original y pone al icono una clase
-	 * de traduccion (text_icono_ACCION) para que setLang le ponga alt y title en el idioma elegido
-	 * @param {string} accion accion del formulario
+	 * refactorizado: el icono de submit con alt y title traducidos
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	colocarboton(accion){
 		super.colocarboton(accion);
@@ -149,10 +119,10 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: rellena un select con opciones (para atributos FK)
+	 * rellena un select
 	 * @param {string} idselect id del select
-	 * @param {Array} opciones [{valor, texto}]
-	 * @param {string} clasevacia si se indica, primera opcion con valor '' y esa clase (texto traducido por setLang)
+	 * @param {Array} opciones lista de {valor, texto}
+	 * @param {string} clasevacia clase de la opcion vacia (opcional)
 	 */
 	crearOpcionesSelect(idselect, opciones, clasevacia=null){
 		let select = document.getElementById(idselect);
@@ -173,24 +143,16 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: misma funcion que crearTablaDatos de AbstractEntidad (no modificable), corrigiendo
-	 * dos problemas con los datos que devuelve el back:
-	 *  - las claves foraneas llegan como objeto (la tupla relacionada, p.e. id_rol = {id_rol, rol_name, ...}):
-	 *    en la tabla saldria [object Object] y el formulario no podria seleccionar su valor. Se deja solo el id.
-	 *  - el JSON de la fila va dentro de un onclick='...': un apostrofo (O'Donnell) cierra el atributo y una
-	 *    entidad html como &#13;&#10; (saltos de linea de las descripciones) se convierte en un salto de linea
-	 *    real dentro del codigo JavaScript. En ambos casos los iconos EDIT/DELETE/SHOWCURRENT de esa fila
-	 *    no funcionan. Se escapan & y ' para que el atributo devuelva el JSON exacto.
-	 *
-	 * @param {Object} entidad entidad que muestra la tabla
-	 * @param {Array} datos filas devueltas por el back
-	 * @param {Array} mostrarespecial columnas a transformar antes de mostrarlas
+	 * como crearTablaDatos pero aplanando las FK y escapando & y ' en los onclick
+	 * @param {Object} entidad entidad que pinta la tabla
+	 * @param {Array} datos tuplas del back
+	 * @param {Array} mostrarespecial columnas con formato especial
 	 */
 	crearTablaDatosEntidad(entidad, datos, mostrarespecial){
 
 		var misdatos = datos;
 
-		// claves foraneas que llegan como objeto: se deja el valor del atributo con el mismo nombre
+		// FK que vienen como objeto: nos quedamos con el id
 		for (var i=0;i<misdatos.length;i++){
 			for (var clave in misdatos[i]){
 				var valor = misdatos[i][clave];
@@ -225,13 +187,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * REFACTORIZADO: rellena el formulario como el original, corrigiendo dos problemas:
-	 *  - el original escribe "undefined" en los campos del formulario que no vienen en la fila (p.e. la
-	 *    contrasena si el back no la devuelve: se enviaria "undefined" como contrasena nueva en EDIT).
-	 *    Los campos que no vienen, o vienen a null, se dejan vacios.
-	 *  - convierte las entidades html que devuelve el back en los textos (p.e. &#13;&#10; de los saltos
-	 *    de linea) en sus caracteres reales, para que en los campos se vea el texto y no el codigo
-	 * @param {Object} parametros fila con un valor por cada campo del formulario
+	 * refactorizado: sin "undefined" en los campos que no vienen y con los &#13;&#10; convertidos
+	 * @param {Object} parametros valores de la fila
 	 */
 	rellenarvaloresform(parametros){
 		let decodificador = document.createElement('textarea');
@@ -259,8 +216,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: reescribe en el campo una fecha d/m/aaaa valida como dd/mm/aaaa (1/1/2000 -> 01/01/2000)
-	 * @param {string} id id del campo de fecha
+	 * d/m/aaaa -> dd/mm/aaaa
+	 * @param {string} id id del campo
 	 */
 	normalizar_fecha(id){
 		let partes = document.getElementById(id).value.split('/');
@@ -268,10 +225,9 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: ejecuta una funcion cada vez que cambia el valor de un campo, pasandole el valor nuevo.
-	 * Usa addEventListener para no pisar el onchange de validacion que pone colocarvalidaciones
+	 * ejecuta funcion cuando cambia el campo
 	 * @param {string} id id del campo
-	 * @param {function} funcion funcion a ejecutar, recibe el valor del campo
+	 * @param {Function} funcion recibe el valor nuevo
 	 */
 	al_cambiar(id, funcion){
 		let campo = document.getElementById(id);
@@ -279,8 +235,7 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: devuelve la clase de traduccion de la opcion vacia de un select (la primera, con valor '')
-	 * o null si el select no tiene opcion vacia
+	 * clase de la opcion vacia del select
 	 * @param {string} idselect id del select
 	 * @returns {string|null}
 	 */
@@ -290,9 +245,7 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: quita el evento de validacion que colocarvalidaciones pone en un campo.
-	 * Se usa con los campos de solo lectura de EDIT: el usuario no introduce esos datos, asi que no se
-	 * validan y no tienen metodo de validacion (un input readonly se puede enfocar y lanzaria el evento)
+	 * quita la validacion de un campo de solo lectura
 	 * @param {string} id id del campo
 	 */
 	quitar_validacion(id){
@@ -301,18 +254,12 @@ class entity_dom_fields extends dom_fields{
 		campo.removeAttribute('onchange');
 	}
 
-	/**********************************************************************************************
-		METODOS NUEVOS PARA EL CALENDARIO DE LOS CAMPOS DE FECHA (persona: fechaNacimiento_persona)
-		El campo de texto sigue siendo el que se valida y se envia (dd/mm/aaaa). El calendario es un
-		input date auxiliar (formato aaaa-mm-dd) que solo sirve para elegir la fecha: se convierte al
-		formato del campo de texto y se lanza su validacion.
-	***********************************************************************************************/
+	// ---------- calendario de los campos de fecha ----------
 
 	/**
-	 * metodo nuevo: d/m/aaaa o dd/mm/aaaa -> aaaa-mm-dd (formato del input date). Si no es una fecha que
-	 * exista en el calendario devuelve cadena vacia
-	 * @param {string} texto fecha escrita en el campo
-	 * @returns {string}
+	 * dd/mm/aaaa -> aaaa-mm-dd
+	 * @param {string} texto fecha d/m/aaaa
+	 * @returns {string} vacia si no es valida
 	 */
 	fecha_a_iso(texto){
 		let partes = /^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/.exec(texto);
@@ -330,10 +277,9 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: aaaa-mm-dd (valor del input date) -> dd/mm/aaaa (formato del campo de texto).
-	 * Se trocea la cadena a mano: new Date('aaaa-mm-dd') se interpreta en UTC y en Espana puede dar el dia anterior
-	 * @param {string} iso
-	 * @returns {string} cadena vacia si no tiene el formato aaaa-mm-dd
+	 * aaaa-mm-dd -> dd/mm/aaaa
+	 * @param {string} iso fecha aaaa-mm-dd
+	 * @returns {string}
 	 */
 	iso_a_fecha(iso){
 		let partes = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(iso);
@@ -341,9 +287,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: hace visible el icono del calendario de un campo de fecha (ADD y EDIT) y le pone
-	 * el texto de ayuda en el idioma activo
-	 * @param {string} idcampo id del campo de texto de la fecha
+	 * muestra el icono del calendario
+	 * @param {string} idcampo id del campo de fecha
 	 */
 	activar_calendario(idcampo){
 		let boton = document.getElementById('boton_calendario_'+idcampo);
@@ -353,9 +298,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: abre el calendario del campo. Lo coloca en la fecha escrita (si es valida) y no deja
-	 * elegir fechas posteriores a hoy (la validacion del campo las rechaza)
-	 * @param {string} idcampo id del campo de texto de la fecha
+	 * abre el calendario en la fecha del campo (sin fechas futuras)
+	 * @param {string} idcampo id del campo de fecha
 	 */
 	abrir_calendario(idcampo){
 		let calendario = document.getElementById('calendario_'+idcampo);
@@ -372,27 +316,21 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: pasa la fecha elegida en el calendario al campo de texto como dd/mm/aaaa y lanza el
-	 * evento change del campo para que se ejecute su validacion (borde verde/rojo y mensaje)
-	 * @param {string} idcampo id del campo de texto de la fecha
+	 * pasa la fecha elegida al campo y lo valida
+	 * @param {string} idcampo id del campo de fecha
 	 */
 	elegir_fecha_calendario(idcampo){
 		let campo = document.getElementById(idcampo);
 		campo.value = this.iso_a_fecha(document.getElementById('calendario_'+idcampo).value);
-		campo.dispatchEvent(new Event('change'));
+		campo.dispatchEvent(new Event('blur'));
 	}
 
-	/**********************************************************************************************
-		METODOS NUEVOS PARA LA MATRIZ DE PERMISOS (funcionalidad_accion y rolaccionfuncionalidad)
-	***********************************************************************************************/
+	// ---------- matriz de permisos (funcionalidad_accion y rolaccionfuncionalidad) ----------
 
 	/**
-	 * metodo nuevo: muestra u oculta los elementos de la cabecera de gestion (index.html) que no usan
-	 * todas las entidades. funcionalidad_accion y rolaccionfuncionalidad se gestionan con la matriz,
-	 * asi que no tienen icono de ADD ni selector de columnas (no hay tabla de tuplas). El resto de
-	 * entidades lo vuelven a mostrar al crearse
-	 * @param {bool} conadd mostrar el icono de ADD
-	 * @param {bool} concolumnas mostrar el selector de columnas
+	 * muestra u oculta el icono de ADD y el selector de columnas
+	 * @param {boolean} conadd mostrar el icono de ADD
+	 * @param {boolean} concolumnas mostrar el selector de columnas
 	 */
 	configurar_cabecera_gestion(conadd, concolumnas){
 		document.getElementById('botonADD').style.display = (conadd) ? '' : 'none';
@@ -401,11 +339,10 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: devuelve los valores de los campos indicados del formulario (cadena vacia si el
-	 * formulario o el campo no existen)
+	 * valores de varios campos del formulario
 	 * @param {string} idform id del formulario
 	 * @param {Array} campos ids de los campos
-	 * @returns {object} {campo: valor}
+	 * @returns {Object} {campo: valor}
 	 */
 	valores_formulario(idform, campos){
 		let valores = {};
@@ -418,9 +355,8 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: vacia el contenedor de la tabla de la entidad y le quita la clase de traduccion
-	 * (AbstractEntidad le pone RECORDSET_VACIO cuando la busqueda no devuelve datos)
-	 * @param {string} idcontenedor id del contenedor (IU_manage_table)
+	 * vacia el contenedor de la tabla
+	 * @param {string} idcontenedor id del contenedor
 	 */
 	preparar_contenedor_matriz(idcontenedor){
 		let contenedor = document.getElementById(idcontenedor);
@@ -430,14 +366,13 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: coloca arriba a la izquierda del contenedor un desplegable con su etiqueta
-	 * (en rolaccionfuncionalidad, para elegir el rol al que se asignan los permisos de la matriz)
-	 * @param {string} idcontenedor id del contenedor (IU_manage_table)
-	 * @param {string} idselect id del desplegable
-	 * @param {string} claseetiqueta clase de traduccion de la etiqueta
-	 * @param {Array} opciones [{valor, texto}]
-	 * @param {*} valor valor seleccionado
-	 * @param {Function} alcambiar (valor) se invoca al cambiar la opcion
+	 * desplegable con etiqueta encima de la matriz
+	 * @param {string} idcontenedor id del contenedor
+	 * @param {string} idselect id del select
+	 * @param {string} claseetiqueta clase de la etiqueta
+	 * @param {Array} opciones lista de {valor, texto}
+	 * @param {*} valor valor del atributo
+	 * @param {Function} alcambiar se llama al cambiar
 	 */
 	crearSelectorMatriz(idcontenedor, idselect, claseetiqueta, opciones, valor, alcambiar){
 		let div = document.createElement('div');
@@ -463,18 +398,15 @@ class entity_dom_fields extends dom_fields{
 	}
 
 	/**
-	 * metodo nuevo: dibuja en el contenedor una matriz de casillas (filas x columnas) y debajo el texto
-	 * de ayuda. Una casilla marcada significa que existe la tupla (fila, columna) en el back.
-	 * Las casillas de combinaciones que no se pueden asignar se dibujan deshabilitadas
-	 *
-	 * @param {string} idcontenedor id del contenedor donde se dibuja (IU_manage_table)
-	 * @param {string} claseesquina clase de traduccion del texto de la esquina superior izquierda
-	 * @param {string} claseayuda clase de traduccion del texto de ayuda de debajo de la matriz
-	 * @param {Array} filas [{valor, texto}]
-	 * @param {Array} columnas [{valor, texto}]
-	 * @param {Function} estaactiva (valorfila, valorcolumna) => true si la casilla va marcada
-	 * @param {Function} sepuedeasignar (valorfila, valorcolumna) => false si la casilla va deshabilitada
-	 * @param {Function} alcambiar (casilla, valorfila, valorcolumna) se invoca al marcar o desmarcar
+	 * tabla de casillas filas x columnas con el texto de ayuda debajo
+	 * @param {string} idcontenedor id del contenedor
+	 * @param {string} claseesquina clase del texto de la esquina
+	 * @param {string} claseayuda clase del texto de ayuda
+	 * @param {Array} filas lista de {valor, texto}
+	 * @param {Array} columnas lista de {valor, texto}
+	 * @param {Function} estaactiva (fila, columna) => true si va marcada
+	 * @param {Function} sepuedeasignar (fila, columna) => false si va deshabilitada
+	 * @param {Function} alcambiar se llama al cambiar
 	 */
 	crearMatriz(idcontenedor, claseesquina, claseayuda, filas, columnas, estaactiva, sepuedeasignar, alcambiar){
 		let div = document.createElement('div');

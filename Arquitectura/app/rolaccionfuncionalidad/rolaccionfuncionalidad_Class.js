@@ -1,7 +1,11 @@
+/**
+ * entidad rolaccionfuncionalidad (matriz con desplegable de rol)
+ */
 class rolaccionfuncionalidad extends AbstractEntidad{
 
 	/**
-	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 * crea la entidad, muestra su gestion y pinta la matriz
+	 * @param {string} esTest 'test' si se crea para los test
 	 */
 	constructor(esTest=null){
 
@@ -21,21 +25,21 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		else{
 			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
-			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
+			// className para que no se acumulen los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
-			// se gestiona con la matriz: sin icono de ADD (se asigna marcando casillas) ni selector de columnas
+			// con la matriz no hay icono de ADD ni selector de columnas
 			this.dom.configurar_cabecera_gestion(false, false);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			// busqueda en back con el formulario vacio y dibujo de la matriz
+			// busqueda inicial
 			this.SEARCH();
 		}
 	}
 
 	/**
-	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
+	 * html del formulario de la entidad
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
@@ -64,7 +68,10 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el error en el campo y devuelve el codigo
+	 * marca el campo con error
+	 * @param {string} id id del campo
+	 * @param {string} codigo codigo de error
+	 * @returns {string} el codigo de error
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -72,64 +79,21 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el exito en el campo y devuelve true
+	 * marca el campo como correcto
+	 * @param {string} id id del campo
+	 * @returns {boolean} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
+	// ---------- validaciones SEARCH ----------
 
-	ADD_id_funcionalidad_validation(){
-		if (!(this.validations.min_size('id_funcionalidad',1))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_funcionalidad',11))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_funcionalidad','^[0-9]+$'))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
-		}
-		return this.exito_campo('id_funcionalidad');
-	}
-
-	ADD_id_accion_validation(){
-		if (!(this.validations.min_size('id_accion',1))){
-			return this.error_campo('id_accion','id_accion_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_accion',11))){
-			return this.error_campo('id_accion','id_accion_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_accion','^[0-9]+$'))){
-			return this.error_campo('id_accion','id_accion_format_ko');
-		}
-		return this.exito_campo('id_accion');
-	}
-
-	ADD_id_rol_validation(){
-		if (!(this.validations.min_size('id_rol',1))){
-			return this.error_campo('id_rol','id_rol_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_rol',11))){
-			return this.error_campo('id_rol','id_rol_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_rol','^[0-9]+$'))){
-			return this.error_campo('id_rol','id_rol_format_ko');
-		}
-		return this.exito_campo('id_rol');
-	}
-
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, valores parciales)
-	***********************************************************************************************/
-
+	/**
+	 * valida id_funcionalidad en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_funcionalidad_validation(){
 		if (!(this.validations.max_size('id_funcionalidad',11))){
 			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
@@ -140,6 +104,10 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		return this.exito_campo('id_funcionalidad');
 	}
 
+	/**
+	 * valida id_accion en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_accion_validation(){
 		if (!(this.validations.max_size('id_accion',11))){
 			return this.error_campo('id_accion','id_accion_max_size_ko');
@@ -150,6 +118,10 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		return this.exito_campo('id_accion');
 	}
 
+	/**
+	 * valida id_rol en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_rol_validation(){
 		if (!(this.validations.max_size('id_rol',11))){
 			return this.error_campo('id_rol','id_rol_max_size_ko');
@@ -160,16 +132,13 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		return this.exito_campo('id_rol');
 	}
 
-	/**********************************************************************************************
-		submits
-		@return {bool} true si todos los campos son correctos
-		@return {object} {id_campo: resultado} si alguno falla
-	***********************************************************************************************/
+	// ---------- submits ----------
 
 	/**
-	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @param {Array} campos ids de los campos a validar
+	 * valida la lista de campos con las validaciones de la accion
+	 * @param {string} accion ADD, EDIT, SEARCH...
+	 * @param {Array} campos ids de los campos
+	 * @returns {boolean|Object} true o {campo: resultado}
 	 */
 	submit_accion(accion, campos){
 		var set_result = {};
@@ -190,21 +159,19 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		}
 	}
 
-	ADD_submit_rolaccionfuncionalidad(){
-		return this.submit_accion('ADD', ['id_funcionalidad', 'id_accion', 'id_rol']);
-	}
-
+	/**
+	 * valida todos los campos del formulario de SEARCH
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	SEARCH_submit_rolaccionfuncionalidad(){
 		return this.submit_accion('SEARCH', ['id_funcionalidad', 'id_accion', 'id_rol']);
 	}
 
-	/**********************************************************************************************
-		formularios por accion
-	***********************************************************************************************/
+	// ---------- formularios ----------
 
 	/**
-	 * id_rol es FK de rol(id_rol): pide al back las filas de rol y devuelve las opciones del select
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_rol (roles del back)
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_rol(){
 		let respuesta = await this.access_functions.peticionBackGeneral('', 'rol', 'SEARCH');
@@ -213,8 +180,8 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * pone el titulo, pinta el formulario vacio y lo hace visible
-	 * @param {string} accion
+	 * pone el titulo y muestra el formulario vacio
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	preparar_formulario(accion){
 		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
@@ -222,6 +189,10 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		this.dom.show_element('Div_IU_form','block');
 	}
 
+	/**
+	 * formulario de SEARCH
+	 * @returns {Promise<void>}
+	 */
 	async createForm_SEARCH(){
 		this.preparar_formulario('SEARCH');
 		this.dom.crearOpcionesSelect('id_funcionalidad', await this.opciones_id_funcionalidad(), 'text_opcion_todos');
@@ -239,10 +210,8 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * id_funcionalidad + id_accion son FK de funcionalidad_accion(id_funcionalidad, id_accion): solo valen
-	 * parejas que existan alli. Se piden al back las parejas una vez y se guardan en this.pares.
-	 * El back puede devolver cada id como objeto (la tupla relacionada): se usa su id y su nombre.
-	 * @returns {Array} [{id_funcionalidad, nombre_funcionalidad, id_accion, nombre_accion}]
+	 * parejas de funcionalidad_accion
+	 * @returns {Array}
 	 */
 	async cargar_pares(){
 		let respuesta = await this.access_functions.peticionBackGeneral('', 'funcionalidad_accion', 'SEARCH');
@@ -260,8 +229,8 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * opciones de id_funcionalidad: las funcionalidades que tienen alguna accion en funcionalidad_accion
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_funcionalidad
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_funcionalidad(){
 		let pares = await this.cargar_pares();
@@ -275,10 +244,9 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * opciones de id_accion: las acciones asociadas a la funcionalidad indicada en funcionalidad_accion
-	 * (todas las de las parejas si no se indica funcionalidad)
-	 * @param {string} id_funcionalidad funcionalidad elegida ('' = todas)
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_accion
+	 * @param {string} id_funcionalidad id de la funcionalidad
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_accion(id_funcionalidad=''){
 		let pares = (this.pares) ? this.pares : await this.cargar_pares();
@@ -292,8 +260,7 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * al cambiar la funcionalidad se dejan en id_accion solo las acciones de su pareja en funcionalidad_accion
-	 * (la manipulacion del DOM la hacen los metodos de entity_dom_fields)
+	 * en SEARCH, deja en id_accion solo las acciones de la funcionalidad elegida
 	 */
 	filtrar_acciones_por_funcionalidad(){
 		this.dom.al_cambiar('id_funcionalidad', async (id_funcionalidad) => {
@@ -302,22 +269,11 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		});
 	}
 
-	/**********************************************************************************************
-		GESTION CON MATRIZ: rolaccionfuncionalidad solo se asigna (ADD) y desasigna (DELETE), asi que
-		en lugar de la tabla de tuplas con iconos se muestra la misma matriz que en funcionalidad_accion
-		(funcionalidades x acciones) con un desplegable arriba a la izquierda para elegir el rol.
-		Marcar una casilla asigna el permiso al rol (ADD) y desmarcarla se lo quita (DELETE).
-		Solo se pueden marcar las parejas que existen en funcionalidad_accion (es la FK de esta tabla):
-		el resto de casillas aparecen deshabilitadas. La busqueda (SEARCH) y el TEST se mantienen.
-		El DOM lo manipulan los metodos de entity_dom_fields
-	***********************************************************************************************/
+	// ---------- matriz: marcar una casilla hace ADD y desmarcarla DELETE ----------
 
 	/**
-	 * REFACTORIZADO (AbstractEntidad no se puede modificar): busca en el back con los datos del
-	 * formulario y, en lugar de crear la tabla de tuplas, dibuja la matriz con el resultado.
-	 * Si se ha buscado por un rol, el desplegable queda en ese rol; si se ha buscado por una
-	 * funcionalidad o una accion, la matriz muestra solo esa fila o columna.
-	 * Si el back devuelve un error se muestra en el modal de error
+	 * refactorizado: busca en el back y pinta la matriz en vez de la tabla
+	 * @returns {Promise<void>}
 	 */
 	async SEARCH(){
 		this.filtro = this.dom.valores_formulario('form_iu', ['id_funcionalidad', 'id_accion', 'id_rol']);
@@ -334,9 +290,9 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * al elegir otro rol en el desplegable se buscan en el back los permisos de ese rol (manteniendo
-	 * el filtro de funcionalidad y accion de la ultima busqueda) y se vuelve a dibujar la matriz
-	 * @param {*} id_rol rol elegido
+	 * al cambiar el rol del desplegable se buscan sus permisos
+	 * @param {string} id_rol id del rol
+	 * @returns {Promise<void>}
 	 */
 	async cambiar_rol(id_rol){
 		this.rol_actual = id_rol;
@@ -352,8 +308,9 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * guarda las tuplas de la respuesta de busqueda y dibuja la matriz, o muestra el error del back
-	 * @param {object} respuesta respuesta del back a un SEARCH
+	 * guarda el resultado de la busqueda y pinta la matriz, o saca el error
+	 * @param {Object} respuesta respuesta del back
+	 * @returns {Promise<void>}
 	 */
 	async procesar_busqueda(respuesta){
 		if ((respuesta['code'] != 'RECORDSET_DATOS') && (respuesta['code'] != 'RECORDSET_VACIO')){
@@ -365,20 +322,21 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * devuelve el id de un atributo de una tupla del back (las FK pueden llegar como objeto)
+	 * id de un atributo (las FK pueden venir como objeto)
 	 * @param {*} valor valor del atributo
-	 * @param {string} columna nombre del atributo
+	 * @param {string} columna atributo
+	 * @returns {*} el id
 	 */
 	id_valor(valor, columna){
 		return (valor !== null && typeof valor == 'object') ? valor[columna] : valor;
 	}
 
 	/**
-	 * pide al back todas las filas de una entidad para el desplegable, las filas o las columnas de la matriz
-	 * @param {string} entidad nombre de la entidad en el back
+	 * pide al back las filas de una entidad para la matriz
+	 * @param {Object} entidad entidad que pinta la tabla
 	 * @param {string} campoid atributo con el id
-	 * @param {string} camponombre atributo con el nombre que se muestra
-	 * @returns {Array|null} [{valor, texto}] o null si el back devuelve un error (ya mostrado en el modal)
+	 * @param {string} camponombre atributo con el nombre
+	 * @returns {Array|null} [{valor, texto}] o null si hay error
 	 */
 	async listar(entidad, campoid, camponombre){
 		let respuesta = await this.access_functions.peticionBackGeneral('', entidad, 'SEARCH');
@@ -393,16 +351,17 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * clave de casilla de una tupla: 'id_funcionalidad|id_accion'
+	 * clave 'funcionalidad|accion' de una tupla
+	 * @param {Object} tupla tupla del back
+	 * @returns {string}
 	 */
 	clave_tupla(tupla){
 		return this.id_valor(tupla.id_funcionalidad, 'id_funcionalidad')+'|'+this.id_valor(tupla.id_accion, 'id_accion');
 	}
 
 	/**
-	 * dibuja el desplegable de rol y la matriz: filas = funcionalidades, columnas = acciones (filtradas
-	 * por la busqueda), casillas marcadas = permisos del rol elegido que ha devuelto la busqueda,
-	 * casillas habilitadas = parejas que existen en funcionalidad_accion y las que ya estan marcadas
+	 * pinta la matriz
+	 * @returns {Promise<void>}
 	 */
 	async mostrar_matriz(){
 		let [roles, funcionalidades, acciones] = await Promise.all([
@@ -414,7 +373,7 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 		}
 		let pares = await this.cargar_pares();
 
-		// rol del desplegable: el buscado o el ultimo elegido; si no hay (o ya no existe), el primero
+		// si no hay rol elegido (o ya no existe) se coge el primero
 		if (!(roles.some(r => r.valor == this.rol_actual))){
 			this.rol_actual = (roles.length > 0) ? roles[0].valor : '';
 		}
@@ -431,21 +390,19 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 			(id_rol) => this.cambiar_rol(id_rol));
 		this.dom.crearMatriz('IU_manage_table', 'text_matriz_esquina', 'text_matriz_ayuda_rol', filas, columnas,
 			(valorfila, valorcolumna) => this.activas.has(valorfila+'|'+valorcolumna),
-			// una casilla marcada siempre se puede desmarcar (aunque su pareja no venga en la busqueda de
-			// funcionalidad_accion); una vacia solo se puede marcar si la pareja existe en funcionalidad_accion
+			// las marcadas siempre se pueden desmarcar; las vacias solo si la pareja
+			// existe en funcionalidad_accion
 			(valorfila, valorcolumna) => (this.rol_actual !== '') && (this.activas.has(valorfila+'|'+valorcolumna) || asignables.has(valorfila+'|'+valorcolumna)),
 			(casilla, valorfila, valorcolumna) => this.matriz_cambiar(casilla, valorfila, valorcolumna));
 		setLang();
 	}
 
 	/**
-	 * al marcar una casilla se asigna el permiso al rol elegido (ADD) y al desmarcarla se le quita (DELETE).
-	 * Errores del back: si responde con error, la casilla vuelve a su estado y se muestra el codigo en
-	 * el modal. Si responde ok se comprueba con una busqueda que el permiso ha quedado (o ya no esta)
-	 * en el back; si no coincide, la casilla vuelve a su estado y se avisa de que no se ha guardado
+	 * marcar = ADD, desmarcar = DELETE. Si falla, la casilla vuelve atras y sale el error
 	 * @param {HTMLElement} casilla casilla pulsada
-	 * @param {*} id_funcionalidad valor de la fila
-	 * @param {*} id_accion valor de la columna
+	 * @param {string} id_funcionalidad id de la funcionalidad
+	 * @param {string} id_accion id de la accion
+	 * @returns {Promise<void>}
 	 */
 	async matriz_cambiar(casilla, id_funcionalidad, id_accion){
 		let marcar = casilla.checked;
@@ -480,10 +437,9 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * busca en el back la tupla y comprueba si existe (comparando los ids exactos, porque la busqueda
-	 * del back puede devolver tambien ids que contienen el buscado)
-	 * @param {object} datos {id_funcionalidad, id_accion, id_rol}
-	 * @returns {bool|null} true si existe, false si no, null si el back responde con error
+	 * comprueba en el back si la tupla esta
+	 * @param {Array} datos tuplas del back
+	 * @returns {boolean|null} null si el back da error
 	 */
 	async existe_en_back(datos){
 		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, 'SEARCH', datos);
@@ -498,17 +454,20 @@ class rolaccionfuncionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * metodo pedido en el enunciado. Esta entidad no transforma ninguna columna (mostrarespecial vacio)
-	 * @param {string} atributo nombre del atributo
-	 * @param {any} valorentrada valor original
-	 * @returns {any} el mismo valor
+	 * cambia como se muestra un atributo en la tabla
+	 * @param {string} atributo atributo
+	 * @param {*} valorentrada valor que viene del back
+	 * @returns {*} valor a mostrar
 	 */
 	mostrarcambioatributo(atributo, valorentrada){
 		return valorentrada;
 	}
 
 	/**
-	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
+	 * lo llama crearTablaDatos de AbstractEntidad
+	 * @param {string} columna atributo
+	 * @param {*} valor valor del atributo
+	 * @returns {*} valor a mostrar
 	 */
 	cambiarmostrarespecial(columna, valor){
 		return this.mostrarcambioatributo(columna, valor);

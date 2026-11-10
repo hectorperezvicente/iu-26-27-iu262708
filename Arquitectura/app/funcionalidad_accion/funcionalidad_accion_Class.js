@@ -1,7 +1,11 @@
+/**
+ * entidad funcionalidad_accion (se gestiona con una matriz)
+ */
 class funcionalidad_accion extends AbstractEntidad{
 
 	/**
-	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 * crea la entidad, muestra su gestion y pinta la matriz
+	 * @param {string} esTest 'test' si se crea para los test
 	 */
 	constructor(esTest=null){
 
@@ -19,21 +23,21 @@ class funcionalidad_accion extends AbstractEntidad{
 		else{
 			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
-			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
+			// className para que no se acumulen los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
-			// se gestiona con la matriz: sin icono de ADD (se asigna marcando casillas) ni selector de columnas
+			// con la matriz no hay icono de ADD ni selector de columnas
 			this.dom.configurar_cabecera_gestion(false, false);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			// busqueda en back con el formulario vacio y dibujo de la matriz
+			// busqueda inicial
 			this.SEARCH();
 		}
 	}
 
 	/**
-	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
+	 * html del formulario de la entidad
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
@@ -57,7 +61,10 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el error en el campo y devuelve el codigo
+	 * marca el campo con error
+	 * @param {string} id id del campo
+	 * @param {string} codigo codigo de error
+	 * @returns {string} el codigo de error
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -65,50 +72,21 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el exito en el campo y devuelve true
+	 * marca el campo como correcto
+	 * @param {string} id id del campo
+	 * @returns {boolean} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
-	/**********************************************************************************************
-		fields validations for ADD
-		@return {string} codigo de error (campo_validacion_ko) o {bool} true si es correcto
-	***********************************************************************************************/
+	// ---------- validaciones SEARCH ----------
 
-	ADD_id_funcionalidad_validation(){
-		if (!(this.validations.min_size('id_funcionalidad',1))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_funcionalidad',11))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_funcionalidad','^[0-9]+$'))){
-			return this.error_campo('id_funcionalidad','id_funcionalidad_format_ko');
-		}
-		return this.exito_campo('id_funcionalidad');
-	}
-
-	ADD_id_accion_validation(){
-		if (!(this.validations.min_size('id_accion',1))){
-			return this.error_campo('id_accion','id_accion_min_size_ko');
-		}
-		if (!(this.validations.max_size('id_accion',11))){
-			return this.error_campo('id_accion','id_accion_max_size_ko');
-		}
-		// solo digitos
-		if (!(this.validations.format('id_accion','^[0-9]+$'))){
-			return this.error_campo('id_accion','id_accion_format_ko');
-		}
-		return this.exito_campo('id_accion');
-	}
-
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, valores parciales)
-	***********************************************************************************************/
-
+	/**
+	 * valida id_funcionalidad en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_funcionalidad_validation(){
 		if (!(this.validations.max_size('id_funcionalidad',11))){
 			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
@@ -119,6 +97,10 @@ class funcionalidad_accion extends AbstractEntidad{
 		return this.exito_campo('id_funcionalidad');
 	}
 
+	/**
+	 * valida id_accion en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_accion_validation(){
 		if (!(this.validations.max_size('id_accion',11))){
 			return this.error_campo('id_accion','id_accion_max_size_ko');
@@ -129,16 +111,13 @@ class funcionalidad_accion extends AbstractEntidad{
 		return this.exito_campo('id_accion');
 	}
 
-	/**********************************************************************************************
-		submits
-		@return {bool} true si todos los campos son correctos
-		@return {object} {id_campo: resultado} si alguno falla
-	***********************************************************************************************/
+	// ---------- submits ----------
 
 	/**
-	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @param {Array} campos ids de los campos a validar
+	 * valida la lista de campos con las validaciones de la accion
+	 * @param {string} accion ADD, EDIT, SEARCH...
+	 * @param {Array} campos ids de los campos
+	 * @returns {boolean|Object} true o {campo: resultado}
 	 */
 	submit_accion(accion, campos){
 		var set_result = {};
@@ -159,21 +138,19 @@ class funcionalidad_accion extends AbstractEntidad{
 		}
 	}
 
-	ADD_submit_funcionalidad_accion(){
-		return this.submit_accion('ADD', ['id_funcionalidad', 'id_accion']);
-	}
-
+	/**
+	 * valida todos los campos del formulario de SEARCH
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	SEARCH_submit_funcionalidad_accion(){
 		return this.submit_accion('SEARCH', ['id_funcionalidad', 'id_accion']);
 	}
 
-	/**********************************************************************************************
-		formularios por accion
-	***********************************************************************************************/
+	// ---------- formularios ----------
 
 	/**
-	 * id_funcionalidad es FK de funcionalidad(id_funcionalidad): pide al back las filas de funcionalidad y devuelve las opciones del select
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_funcionalidad
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_funcionalidad(){
 		let respuesta = await this.access_functions.peticionBackGeneral('', 'funcionalidad', 'SEARCH');
@@ -182,8 +159,8 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * id_accion es FK de accion(id_accion): pide al back las filas de accion y devuelve las opciones del select
-	 * @returns {Array} [{valor, texto}]
+	 * opciones del select de id_accion
+	 * @returns {Array} opciones
 	 */
 	async opciones_id_accion(){
 		let respuesta = await this.access_functions.peticionBackGeneral('', 'accion', 'SEARCH');
@@ -192,8 +169,8 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * pone el titulo, pinta el formulario vacio y lo hace visible
-	 * @param {string} accion
+	 * pone el titulo y muestra el formulario vacio
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	preparar_formulario(accion){
 		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
@@ -201,6 +178,10 @@ class funcionalidad_accion extends AbstractEntidad{
 		this.dom.show_element('Div_IU_form','block');
 	}
 
+	/**
+	 * formulario de SEARCH
+	 * @returns {Promise<void>}
+	 */
 	async createForm_SEARCH(){
 		this.preparar_formulario('SEARCH');
 		this.dom.crearOpcionesSelect('id_funcionalidad', await this.opciones_id_funcionalidad(), 'text_opcion_todos');
@@ -215,18 +196,11 @@ class funcionalidad_accion extends AbstractEntidad{
 		setLang();
 	}
 
-	/**********************************************************************************************
-		GESTION CON MATRIZ: funcionalidad_accion solo se asigna (ADD) y desasigna (DELETE), asi que
-		en lugar de la tabla de tuplas con iconos se muestra una matriz funcionalidades x acciones.
-		Marcar una casilla hace ADD de la pareja y desmarcarla hace DELETE. La busqueda (SEARCH) y
-		el TEST se mantienen. El DOM lo manipulan los metodos de entity_dom_fields
-	***********************************************************************************************/
+	// ---------- matriz: marcar una casilla hace ADD y desmarcarla DELETE ----------
 
 	/**
-	 * REFACTORIZADO (AbstractEntidad no se puede modificar): busca en el back con los datos del
-	 * formulario y, en lugar de crear la tabla de tuplas, dibuja la matriz con el resultado.
-	 * Si se ha buscado por una funcionalidad o una accion, la matriz muestra solo esa fila o columna.
-	 * Si el back devuelve un error se muestra en el modal de error
+	 * refactorizado: busca en el back y pinta la matriz en vez de la tabla
+	 * @returns {Promise<void>}
 	 */
 	async SEARCH(){
 		this.filtro = this.dom.valores_formulario('form_iu', ['id_funcionalidad', 'id_accion']);
@@ -245,20 +219,21 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * devuelve el id de un atributo de una tupla del back (las FK pueden llegar como objeto)
+	 * id de un atributo (las FK pueden venir como objeto)
 	 * @param {*} valor valor del atributo
-	 * @param {string} columna nombre del atributo
+	 * @param {string} columna atributo
+	 * @returns {*} el id
 	 */
 	id_valor(valor, columna){
 		return (valor !== null && typeof valor == 'object') ? valor[columna] : valor;
 	}
 
 	/**
-	 * pide al back todas las filas de una entidad para las filas o columnas de la matriz
-	 * @param {string} entidad nombre de la entidad en el back
+	 * pide al back las filas de una entidad para la matriz
+	 * @param {Object} entidad entidad que pinta la tabla
 	 * @param {string} campoid atributo con el id
-	 * @param {string} camponombre atributo con el nombre que se muestra
-	 * @returns {Array|null} [{valor, texto}] o null si el back devuelve un error (ya mostrado en el modal)
+	 * @param {string} camponombre atributo con el nombre
+	 * @returns {Array|null} [{valor, texto}] o null si hay error
 	 */
 	async listar(entidad, campoid, camponombre){
 		let respuesta = await this.access_functions.peticionBackGeneral('', entidad, 'SEARCH');
@@ -273,15 +248,17 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * clave de casilla de una tupla: 'id_funcionalidad|id_accion'
+	 * clave 'funcionalidad|accion' de una tupla
+	 * @param {Object} tupla tupla del back
+	 * @returns {string}
 	 */
 	clave_tupla(tupla){
 		return this.id_valor(tupla.id_funcionalidad, 'id_funcionalidad')+'|'+this.id_valor(tupla.id_accion, 'id_accion');
 	}
 
 	/**
-	 * dibuja la matriz: filas = funcionalidades, columnas = acciones (filtradas por la busqueda),
-	 * casillas marcadas = parejas que ha devuelto la busqueda
+	 * pinta la matriz
+	 * @returns {Promise<void>}
 	 */
 	async mostrar_matriz(){
 		let [funcionalidades, acciones] = await Promise.all([
@@ -303,13 +280,11 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * al marcar una casilla se hace ADD de la pareja y al desmarcarla DELETE.
-	 * Errores del back: si responde con error, la casilla vuelve a su estado y se muestra el codigo en
-	 * el modal. Si responde ok se comprueba con una busqueda que la pareja ha quedado (o ya no esta)
-	 * en el back; si no coincide, la casilla vuelve a su estado y se avisa de que no se ha guardado
+	 * marcar = ADD, desmarcar = DELETE. Si falla, la casilla vuelve atras y sale el error
 	 * @param {HTMLElement} casilla casilla pulsada
-	 * @param {*} id_funcionalidad valor de la fila
-	 * @param {*} id_accion valor de la columna
+	 * @param {string} id_funcionalidad id de la funcionalidad
+	 * @param {string} id_accion id de la accion
+	 * @returns {Promise<void>}
 	 */
 	async matriz_cambiar(casilla, id_funcionalidad, id_accion){
 		let marcar = casilla.checked;
@@ -344,10 +319,9 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * busca en el back la tupla y comprueba si existe (comparando los ids exactos, porque la busqueda
-	 * del back puede devolver tambien ids que contienen el buscado)
-	 * @param {object} datos {id_funcionalidad, id_accion}
-	 * @returns {bool|null} true si existe, false si no, null si el back responde con error
+	 * comprueba en el back si la tupla esta
+	 * @param {Array} datos tuplas del back
+	 * @returns {boolean|null} null si el back da error
 	 */
 	async existe_en_back(datos){
 		let respuesta = await this.access_functions.peticionBackGeneral('', this.nombreentidad, 'SEARCH', datos);
@@ -362,17 +336,20 @@ class funcionalidad_accion extends AbstractEntidad{
 	}
 
 	/**
-	 * metodo pedido en el enunciado. Esta entidad no transforma ninguna columna (mostrarespecial vacio)
-	 * @param {string} atributo nombre del atributo
-	 * @param {any} valorentrada valor original
-	 * @returns {any} el mismo valor
+	 * cambia como se muestra un atributo en la tabla
+	 * @param {string} atributo atributo
+	 * @param {*} valorentrada valor que viene del back
+	 * @returns {*} valor a mostrar
 	 */
 	mostrarcambioatributo(atributo, valorentrada){
 		return valorentrada;
 	}
 
 	/**
-	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
+	 * lo llama crearTablaDatos de AbstractEntidad
+	 * @param {string} columna atributo
+	 * @param {*} valor valor del atributo
+	 * @returns {*} valor a mostrar
 	 */
 	cambiarmostrarespecial(columna, valor){
 		return this.mostrarcambioatributo(columna, valor);

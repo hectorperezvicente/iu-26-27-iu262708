@@ -1,7 +1,11 @@
+/**
+ * entidad funcionalidad
+ */
 class funcionalidad extends AbstractEntidad{
 
 	/**
-	 * @param {string} esTest 'test' para crear la entidad sin pintar nada (pruebas)
+	 * crea la entidad, muestra su gestion y carga los datos
+	 * @param {string} esTest 'test' si se crea para los test
 	 */
 	constructor(esTest=null){
 
@@ -19,21 +23,21 @@ class funcionalidad extends AbstractEntidad{
 		else{
 			// visualizar seccion tabla y botones
 			document.getElementById('IU_manage_entity').style.display = 'block';
-			// className y no classList.add: si no, al cambiar de entidad se acumulan los titulos
+			// className para que no se acumulen los titulos
 			document.getElementById('text_title_page').className = 'text_titulo_page_'+this.nombreentidad;
-			// icono de ADD y selector de columnas visibles (funcionalidad_accion y rolaccionfuncionalidad los ocultan)
+			// mostrar icono de ADD y selector de columnas
 			this.dom.configurar_cabecera_gestion(true, true);
 
 			// crear el formulario vacio
 			document.getElementById('contenedor_IU_form').innerHTML = this.manual_form_creation();
 
-			// busqueda en back con el formulario vacio
+			// busqueda inicial
 			this.SEARCH();
 		}
 	}
 
 	/**
-	 * formulario base de la entidad. Sin eventos: los pone colocarvalidaciones segun la accion
+	 * html del formulario de la entidad
 	 * @returns {string} html del formulario
 	 */
 	manual_form_creation(){
@@ -59,7 +63,10 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el error en el campo y devuelve el codigo
+	 * marca el campo con error
+	 * @param {string} id id del campo
+	 * @param {string} codigo codigo de error
+	 * @returns {string} el codigo de error
 	 */
 	error_campo(id, codigo){
 		this.dom.mostrar_error_campo(id, codigo);
@@ -67,13 +74,19 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * muestra el exito en el campo y devuelve true
+	 * marca el campo como correcto
+	 * @param {string} id id del campo
+	 * @returns {boolean} true
 	 */
 	exito_campo(id){
 		this.dom.mostrar_exito_campo(id);
 		return true;
 	}
 
+	/**
+	 * valida nombre_funcionalidad en ADD (entre 5 y 48 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_nombre_funcionalidad_validation(){
 		if (!(this.validations.min_size('nombre_funcionalidad',5))){
 			return this.error_campo('nombre_funcionalidad','nombre_funcionalidad_min_size_ko');
@@ -81,13 +94,17 @@ class funcionalidad extends AbstractEntidad{
 		if (!(this.validations.max_size('nombre_funcionalidad',48))){
 			return this.error_campo('nombre_funcionalidad','nombre_funcionalidad_max_size_ko');
 		}
-		// solo letras, incluida la \u00F1
+		// solo letras (tambien la enie)
 		if (!(this.validations.format('nombre_funcionalidad','^[A-Za-z\u00F1\u00D1]+$'))){
 			return this.error_campo('nombre_funcionalidad','nombre_funcionalidad_format_ko');
 		}
 		return this.exito_campo('nombre_funcionalidad');
 	}
 
+	/**
+	 * valida descrip_funcionalidad en ADD (entre 5 y 200 caracteres, formato)
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	ADD_descrip_funcionalidad_validation(){
 		if (!(this.validations.min_size('descrip_funcionalidad',5))){
 			return this.error_campo('descrip_funcionalidad','descrip_funcionalidad_min_size_ko');
@@ -95,30 +112,37 @@ class funcionalidad extends AbstractEntidad{
 		if (!(this.validations.max_size('descrip_funcionalidad',200))){
 			return this.error_campo('descrip_funcionalidad','descrip_funcionalidad_max_size_ko');
 		}
-		// letras con \u00F1, espacio y signos de puntuacion (. , ; : ! ? \u00A1 \u00BF ( ) " ' -)
+		// letras sin tildes, espacios y signos de puntuacion
 		if (!(this.validations.format('descrip_funcionalidad','^[A-Za-z\u00F1\u00D1 .,;:!?\u00A1\u00BF()"\'-]+$'))){
 			return this.error_campo('descrip_funcionalidad','descrip_funcionalidad_format_ko');
 		}
 		return this.exito_campo('descrip_funcionalidad');
 	}
 
-	/**********************************************************************************************
-		fields validations for EDIT (mismas reglas que ADD). Los campos de solo lectura (clave
-		primaria y foto guardada) no se validan: el usuario no introduce esos datos
-	***********************************************************************************************/
+	// ---------- validaciones EDIT ----------
 
+	/**
+	 * valida nombre_funcionalidad en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_nombre_funcionalidad_validation(){
 		return this.ADD_nombre_funcionalidad_validation();
 	}
 
+	/**
+	 * valida descrip_funcionalidad en EDIT, igual que en ADD
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	EDIT_descrip_funcionalidad_validation(){
 		return this.ADD_descrip_funcionalidad_validation();
 	}
 
-	/**********************************************************************************************
-		fields validations for SEARCH (campos opcionales, valores parciales)
-	***********************************************************************************************/
+	// ---------- validaciones SEARCH ----------
 
+	/**
+	 * valida id_funcionalidad en SEARCH (max 11 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_id_funcionalidad_validation(){
 		if (!(this.validations.max_size('id_funcionalidad',11))){
 			return this.error_campo('id_funcionalidad','id_funcionalidad_max_size_ko');
@@ -129,6 +153,10 @@ class funcionalidad extends AbstractEntidad{
 		return this.exito_campo('id_funcionalidad');
 	}
 
+	/**
+	 * valida nombre_funcionalidad en SEARCH (max 48 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_nombre_funcionalidad_validation(){
 		if (!(this.validations.max_size('nombre_funcionalidad',48))){
 			return this.error_campo('nombre_funcionalidad','nombre_funcionalidad_max_size_ko');
@@ -139,6 +167,10 @@ class funcionalidad extends AbstractEntidad{
 		return this.exito_campo('nombre_funcionalidad');
 	}
 
+	/**
+	 * valida descrip_funcionalidad en SEARCH (max 200 caracteres, formato). Puede ir vacio
+	 * @returns {string|boolean} codigo de error o true
+	 */
 	SEARCH_descrip_funcionalidad_validation(){
 		if (!(this.validations.max_size('descrip_funcionalidad',200))){
 			return this.error_campo('descrip_funcionalidad','descrip_funcionalidad_max_size_ko');
@@ -149,16 +181,13 @@ class funcionalidad extends AbstractEntidad{
 		return this.exito_campo('descrip_funcionalidad');
 	}
 
-	/**********************************************************************************************
-		submits
-		@return {bool} true si todos los campos son correctos
-		@return {object} {id_campo: resultado} si alguno falla
-	***********************************************************************************************/
+	// ---------- submits ----------
 
 	/**
-	 * ejecuta la validacion de la accion para los campos indicados
-	 * @param {string} accion ADD / EDIT / SEARCH
-	 * @param {Array} campos ids de los campos a validar
+	 * valida la lista de campos con las validaciones de la accion
+	 * @param {string} accion ADD, EDIT, SEARCH...
+	 * @param {Array} campos ids de los campos
+	 * @returns {boolean|Object} true o {campo: resultado}
 	 */
 	submit_accion(accion, campos){
 		var set_result = {};
@@ -179,26 +208,35 @@ class funcionalidad extends AbstractEntidad{
 		}
 	}
 
-	// id_funcionalidad no se valida en ADD: es autoincremental y no se muestra
+	/**
+	 * valida todos los campos del formulario de ADD
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	ADD_submit_funcionalidad(){
 		return this.submit_accion('ADD', ['nombre_funcionalidad', 'descrip_funcionalidad']);
 	}
 
+	/**
+	 * valida todos los campos del formulario de EDIT
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	EDIT_submit_funcionalidad(){
 		return this.submit_accion('EDIT', ['nombre_funcionalidad', 'descrip_funcionalidad']);
 	}
 
+	/**
+	 * valida todos los campos del formulario de SEARCH
+	 * @returns {boolean|Object} true o {campo: resultado}
+	 */
 	SEARCH_submit_funcionalidad(){
 		return this.submit_accion('SEARCH', ['id_funcionalidad', 'nombre_funcionalidad', 'descrip_funcionalidad']);
 	}
 
-	/**********************************************************************************************
-		formularios por accion
-	***********************************************************************************************/
+	// ---------- formularios ----------
 
 	/**
-	 * pone el titulo, pinta el formulario vacio y lo hace visible
-	 * @param {string} accion
+	 * pone el titulo y muestra el formulario vacio
+	 * @param {string} accion ADD, EDIT, SEARCH...
 	 */
 	preparar_formulario(accion){
 		this.dom.assign_property_value('class_contenido_titulo_form','class','text_contenido_titulo_form_'+this.nombreentidad+'_'+accion);
@@ -206,13 +244,16 @@ class funcionalidad extends AbstractEntidad{
 		this.dom.show_element('Div_IU_form','block');
 	}
 
+	/**
+	 * formulario de ADD
+	 */
 	createForm_ADD(){
 		this.preparar_formulario('ADD');
 
 		this.dom.assign_property_value('form_iu','onsubmit','return entidad.dom.validarsubmit(entidad.ADD_submit_'+this.nombreentidad+'())');
 		this.dom.assign_property_value('form_iu','action','javascript:entidad.ADD();');
 
-		// id_funcionalidad es autoincremental: lo asigna el back, no se muestra en ADD
+		// id_funcionalidad lo pone el back
 		this.dom.hide_element_form('id_funcionalidad');
 
 		this.dom.colocarvalidaciones('form_iu','ADD');
@@ -222,7 +263,8 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a modificar
+	 * formulario de EDIT con los datos de la fila
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_EDIT(fila){
 		this.preparar_formulario('EDIT');
@@ -243,6 +285,9 @@ class funcionalidad extends AbstractEntidad{
 		setLang();
 	}
 
+	/**
+	 * formulario de SEARCH
+	 */
 	createForm_SEARCH(){
 		this.preparar_formulario('SEARCH');
 
@@ -256,7 +301,8 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a borrar
+	 * formulario de DELETE, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_DELETE(fila){
 		this.preparar_formulario('DELETE');
@@ -272,7 +318,8 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * @param {Object} fila datos de la fila a mostrar
+	 * formulario de SHOWCURRENT, todo de solo lectura
+	 * @param {Object} fila datos de la fila
 	 */
 	createForm_SHOWCURRENT(fila){
 		this.preparar_formulario('SHOWCURRENT');
@@ -286,25 +333,29 @@ class funcionalidad extends AbstractEntidad{
 	}
 
 	/**
-	 * REFACTORIZADO (AbstractEntidad no se puede modificar): la tabla se crea con la version de
-	 * entity_dom_fields, que no rompe los iconos de las filas con apostrofos en sus datos
+	 * refactorizado: pinta la tabla con crearTablaDatosEntidad
+	 * @param {Array} datos tuplas del back
+	 * @param {Array} mostrarespecial columnas con formato especial
 	 */
 	crearTablaDatos(datos, mostrarespecial){
 		this.dom.crearTablaDatosEntidad(this, datos, mostrarespecial);
 	}
 
 	/**
-	 * metodo pedido en el enunciado. Esta entidad no transforma ninguna columna (mostrarespecial vacio)
-	 * @param {string} atributo nombre del atributo
-	 * @param {any} valorentrada valor original
-	 * @returns {any} el mismo valor
+	 * cambia como se muestra un atributo en la tabla
+	 * @param {string} atributo atributo
+	 * @param {*} valorentrada valor que viene del back
+	 * @returns {*} valor a mostrar
 	 */
 	mostrarcambioatributo(atributo, valorentrada){
 		return valorentrada;
 	}
 
 	/**
-	 * nombre con el que lo invoca crearTablaDatos de AbstractEntidad (no modificable)
+	 * lo llama crearTablaDatos de AbstractEntidad
+	 * @param {string} columna atributo
+	 * @param {*} valor valor del atributo
+	 * @returns {*} valor a mostrar
 	 */
 	cambiarmostrarespecial(columna, valor){
 		return this.mostrarcambioatributo(columna, valor);
